@@ -63,6 +63,7 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Augment biển | **Cần nhóm quyết:** tắt flip ngang, chỉ thử augment không làm đổi nghĩa biển trên validation; không để thư viện tự đổi cấu hình giữa các run | Trước khóa train config |
 | Tiling batch | **Cần nhóm quyết:** so toàn ảnh với ô 640/chồng 20% trên cùng tập phát triển; chọn bằng recall/time, không suy tiling luôn tốt từ PoC | Trước chạy batch chính |
 | Đối sánh bài thử B3 | **Cần nhóm quyết:** đúng lớp/tấm + IoU≥0,50 với bbox gán độc lập, khóa trước thử để không nhầm tấm đúng hướng | Trước quyết định B3 |
+| Cấu hình triển khai còn thiếu | **Cần nhóm quyết:** cơ chế JWT signing, đường dẫn evidence và base URL app; bổ sung .env.example trong thay đổi cấu hình riêng được duyệt, không hard-code trong tài liệu | Trước triển khai |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

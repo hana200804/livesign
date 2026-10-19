@@ -12,7 +12,7 @@ $env:MAPILLARY_TOKEN = "MLY|..."
 | --- | --- | --- |
 | `check-coverage.mjs [khu]` | Đo độ phủ ảnh theo từng phố ở 3 khu (PTIT, Cầu Giấy, Hoàn Kiếm) | `out/<khu>-streets.csv`, `out/<khu>-signs.csv`, `out/summary.json` |
 | `trip-check.mjs` | Với mỗi biển: bao nhiêu chuỗi ảnh / người chụp đi qua trong 30 m, bao nhiêu thật sự thấy biển | `out/<khu>-trip-check.csv` |
-| `rank-segments.mjs <khu>` | Xếp hạng ô ~200 m theo độ hợp làm đoạn demo (dùng cho N1) | `out/<khu>-segments.csv` |
+| `rank-segments.mjs <khu>` | Xếp hạng ô ~200 m theo độ hợp làm đoạn demo | `out/<khu>-segments.csv` |
 
 ## poc/ — PoC tuần 1
 

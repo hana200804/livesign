@@ -1,12 +1,7 @@
 name: Việc
-description: Một việc trong bảng chia việc hoặc việc phát sinh
+description: Một việc cần làm
 labels: ["task"]
 body:
-  - type: input
-    id: code
-    attributes:
-      label: Mã việc
-      placeholder: "B2 (để trống nếu là việc phát sinh)"
   - type: textarea
     id: what
     attributes:
@@ -16,11 +11,4 @@ body:
   - type: textarea
     id: output
     attributes:
-      label: Đầu ra / khi nào coi là xong
-    validations:
-      required: true
-  - type: input
-    id: depends
-    attributes:
-      label: Cần xong trước
-      placeholder: "#3, #5"
+      label: Khi nào coi là xong

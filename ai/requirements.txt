@@ -1,0 +1,9 @@
+# Cài: pip install -r ai/requirements.txt
+# Máy có GPU NVIDIA: cài torch bản CUDA trước theo hướng dẫn ở https://pytorch.org/get-started/locally/
+ultralytics>=8.3,<9
+pandas>=2.0
+pillow>=10.0
+imagehash>=4.3
+pyyaml>=6.0
+tqdm>=4.66
+jupyter

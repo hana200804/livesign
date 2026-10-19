@@ -1,0 +1,15 @@
+# File dataset cho Ultralytics YOLO. Chạy lệnh train từ GỐC repo để `path` trỏ đúng.
+# Tạo dữ liệu trong data/processed/yolo/ bằng script chuẩn bị dataset.
+path: data/processed/yolo
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: cam_nguoc_chieu
+  1: cam_dung_do
+  2: cam_re
+  3: gioi_han_toc_do
+  4: cam_khac
+  5: nguy_hiem
+  6: hieu_lenh

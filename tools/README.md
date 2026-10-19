@@ -20,7 +20,6 @@ $env:MAPILLARY_TOKEN = "MLY|..."
 | --- | --- |
 | `fetch-signs.mjs` | Chọn 500 m có nhiều biển nhất, lấy ảnh đi qua từng biển, tải thumbnail 1024px vào `out/images/` |
 | `label-tool/server.mjs` | Công cụ gán tay 3 nhãn (thấy / không thấy / không xác định), mở http://localhost:8787, ghi `out/labels.csv` |
-| `visibility_poc.ipynb` | Notebook đo tỉ lệ model thấy biển trên ảnh đi qua |
-| `results/` | Kết quả PoC trên Trần Phú |
+| `results/` | Kết quả PoC trên Trần Phú, chạy bằng notebook [`ai/notebooks/00_visibility_poc.ipynb`](../ai/notebooks/00_visibility_poc.ipynb) |
 
 Ảnh trong `poc/out/images/` và file `.zip` không được commit. Chạy lại `fetch-signs.mjs` để tải về.

@@ -1,0 +1,24 @@
+# Danh sách lớp biển model sẽ học và cách gộp nhãn từ từng nguồn dữ liệu.
+# BẢN NHÁP: danh sách lớp đích chưa chốt (đề cương: 10–15 loại).
+# Tạm lấy 7 nhóm của Zalo AI 2020 làm điểm xuất phát; bổ sung / tách lớp khi đã xem các bộ Roboflow.
+
+classes:
+  0: cam_nguoc_chieu        # Cấm ngược chiều
+  1: cam_dung_do            # Cấm dừng và đỗ
+  2: cam_re                 # Cấm rẽ
+  3: gioi_han_toc_do        # Giới hạn tốc độ
+  4: cam_khac               # Các biển cấm còn lại
+  5: nguy_hiem              # Biển nguy hiểm, cảnh báo
+  6: hieu_lenh              # Biển hiệu lệnh
+
+# Ánh xạ: <nguồn> -> { id lớp gốc: id lớp đích }. Lớp gốc không có trong bảng sẽ bị bỏ.
+# id lớp gốc của Zalo 2020 ghi theo trí nhớ: đối chiếu với file annotation khi tải về.
+sources:
+  zalo2020:
+    1: 0
+    2: 1
+    3: 2
+    4: 3
+    5: 4
+    6: 5
+    7: 6

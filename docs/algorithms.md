@@ -30,18 +30,30 @@ cutoff không được dùng để sửa tọa độ/cluster/ảnh bằng chứn
 | Giao tia bình phương tối thiểu | ≥2 lần thấy cùng tấm, camera GPS + heading + bbox + thông số ảnh → vị trí, phần dư, điều kiện nghiệm | Không cần biết kích thước biển; nhạy GPS/góc, sai liên kết tấm, gần song song | Phương án chính của **thử nghiệm định vị nâng cao**, chưa bật mặc định |
 | Camera + khoảng cách từ bbox | GPS camera + hướng tia + tiêu cự + kích thước vật lý biết trước → vị trí | Một ảnh cũng tính được; biển nghiêng/kích thước chưa biết làm sai khoảng cách lớn | Chỉ thử khi có hiệu chuẩn; thiếu kích thước → chưa đủ dữ liệu |
 
-**Cần nhóm quyết:** đề xuất giao tia làm phương án chính khi nghiệm đạt kiểm tra,
-dự phòng feature Mapillary có nguồn; nếu cả hai thiếu thì lấy GPS camera và gắn
-`location_method=camera_proxy` để giữ ứng viên, không nhận là vị trí thật.
-Lý do: giao tia có thể kiểm tra phần dư; feature có sẵn; bbox không đủ để suy độ sâu.
-Đây là mở rộng định vị. **Phép so B0–B3 chính giữ cùng vị trí camera + gộp 20 m**,
-không đổi định vị/hướng giữa các bậc rồi gán mọi cải thiện cho điểm tin cậy.
+**Đã chốt (19/10):** thứ tự định vị là **giao tia → feature Mapillary → camera_proxy**
+(`positioning.primary_method`, `fallback_order` trong params). Lý do: giao tia kiểm tra được
+phần dư; feature có sẵn; bbox không đủ để suy độ sâu.
 
-> **Mâu thuẫn cần nhóm quyết trước khi chấm (review 19/10):** camera thường cách biển
-> 5–35 m (PoC Trần Phú), trong khi khớp mốc dùng `ground_truth.match_radius_m=5`.
-> Nếu B0–B3 lấy vị trí camera thì phần lớn biển dự đoán không khớp được mốc, độ chính
-> xác và độ phủ của cả bốn bậc đều thấp vì định vị chứ không vì độ tin cậy.
-> Xem dòng "Định vị cho thang B0–B3" trong [decisions.md](decisions.md).
+| Dùng ở đâu | Vị trí biển | Gộp |
+| --- | --- | --- |
+| Thang **B0–B3** | Cùng một cách cho cả bốn bậc: giao tia, không đạt thì feature Mapillary | Cùng loại + 20 m + camera phía trước biển (mục hướng mặt) |
+| Dòng so sánh **PB** (cách làm phổ biến hiện nay) | GPS của ảnh có lần thấy | Cùng loại + 20 m, không xét hướng |
+
+Vì cả bốn bậc dùng chung định vị và luật gộp, chênh lệch giữa B0–B3 vẫn chỉ do độ đa
+dạng nguồn, độ mới và mâu thuẫn. Chênh lệch giữa PB và B0 cho thấy tác dụng của định vị.
+Lý do không dùng vị trí camera cho thang: camera thường cách biển 5–35 m (PoC Trần Phú),
+còn khớp mốc dùng `ground_truth.match_radius_m=5`.
+
+Sign chỉ có `camera_proxy` vẫn được lưu làm candidate cho sản phẩm, nhưng **không vào tập
+hiển thị D của B0–B3**; biển mốc tương ứng tính là thiếu ở coverage và đếm riêng số
+"chưa định vị được" (`positioning.camera_proxy_in_evaluation=excluded`).
+
+**Liên kết feature Mapillary:** dùng `source_sign_id` nếu lần thấy đã gắn sẵn; nếu không,
+lấy feature có loại ánh xạ được sang cùng mã (theo `mapillary_label_candidates`), nằm
+phía trước camera (λ>0), trong 30 m và cách tia nhìn ≤ `feature_link_max_ray_distance_m`.
+Nhiều feature đạt thì chọn gần tia nhất; hòa thì không liên kết. Giới hạn cần ghi trong quyển:
+vị trí feature do Mapillary tính từ toàn bộ ảnh tới hiện tại, nên với snapshot quá khứ chỉ
+dùng **vị trí**, không dùng feature để suy biển có tồn tại tại T; báo tỷ lệ sign định vị bằng feature.
 
 ### Giao tia: công thức và pseudocode
 
@@ -132,7 +144,7 @@ Hệ quả cho các thuật toán khác:
   `merge_max_facing_diff_deg` chỉ dùng khi so **hai sign** đều đã có facing tổng hợp.
 - Sign mới chỉ có một tia: tạm `facing=ψ+180°`, `facing_source=single_view`; không dùng để
   tạo not_seen hay nhắc cho tới khi đủ `facing.min_views`.
-- B0 theo cách làm phổ biến gộp theo loại + 20 m, **không xét hướng**.
+- Dòng PB (cách làm phổ biến) gộp theo loại + 20 m, **không xét hướng**; thang B0–B3 xét hướng như trên.
 
 **Cần nhóm quyết:** dùng ước lượng trên; `facing.min_views=2`, `min_resultant_length=0,5`
 là dự kiến, cần đo trên bộ mốc phát triển. Nếu không chấp nhận, phải chọn nguồn hướng

@@ -25,14 +25,17 @@ N/θ/θ_thấp còn null: đánh dấu bậc phụ thuộc là not_run, không t
 
 | Bậc | Tập tấm được tính có trên bản đồ tại T |
 | --- | --- |
-| B0 | Ít nhất một seen hợp lệ trước cutoff; cùng loại gộp 20 m, vị trí camera; không yêu cầu N/tuổi |
+| PB | **Dòng so sánh, không thuộc thang.** Cách làm phổ biến hiện nay: vị trí = GPS ảnh có lần thấy, gộp cùng loại trong 20 m, không xét hướng, ≥1 seen |
+| B0 | Ít nhất một seen hợp lệ trước cutoff; vị trí theo giao tia → feature Mapillary, gộp cùng loại 20 m + hướng; không yêu cầu N/tuổi |
 | B1 | Cùng đầu vào/cluster B0, ≥N cặp dương thật, không xét thời gian; **không thêm θ làm điều kiện riêng của B1** |
 | B2 | B1 và tuổi cặp dương gần nhất ≤H; biển cũ hơn bị loại khi chấm |
 | B3 | B2 và không ở suspected_change theo điểm giảm dần và dấu hiệu (a)(b)(c); cần bài thử âm cho phép |
 
-> **Chưa thống nhất (review 19/10):** dòng B0 ghi "vị trí camera" nhưng khớp mốc dùng
-> bán kính 5 m; camera thường cách biển 5–35 m nên gần như không khớp được. Phải chọn
-> một trong hai cách ở [decisions.md](decisions.md), dòng "Định vị cho thang B0–B3", trước khi chấm.
+B0–B3 dùng **chung** định vị (giao tia → feature Mapillary) và luật gộp, chỉ khác bộ lọc
+bậc, nên chênh lệch giữa các bậc là do độ tin cậy. PB khác B0 ở định vị và gộp, nên
+PB → B0 đo tác dụng của định vị. Sign chỉ có camera_proxy không vào D của B0–B3; báo
+riêng `unpositioned_count` (xem [algorithms.md](algorithms.md)). PB không bị loại như vậy
+vì vị trí ảnh chính là định nghĩa của nó.
 
 Giữ nguyên detector, source corpus, tọa độ và luật gộp ở cả bốn bậc khi muốn quy
 cải thiện cho độ đa dạng/độ mới/mâu thuẫn. Gộp có hướng, giao tia hoặc feature
@@ -47,7 +50,7 @@ là phép lọc chấm, không phải thay chính sách sản phẩm. B1 không 
 
 ### So với Mapillary và cách làm phổ biến hiện nay
 
-B0 là cách làm phổ biến hiện nay đã định nghĩa trong repo. Lớp feature Mapillary
+PB là cách làm phổ biến hiện nay đã định nghĩa trong repo, B0 là bậc đầu của thang. Lớp feature Mapillary
 là đối chứng bên ngoài trên cùng tuyến/12 lớp, nhãn được đối chiếu đúng mã.
 Không có snapshot feature tại cuối T thì **không được** lấy feature hiện tại rồi
 lọc first_seen/last_seen để nhận là ảnh chụp đầy đủ quá khứ. Ghi not_available ở
@@ -149,6 +152,7 @@ Các file có nhiều dòng thật không đưa vào data-small; chỉ mẫu nh�
 
 | Bậc / năm | Precision trước / sau duyệt | Coverage trước / sau | Ca admin | Xác nhận auto / manual |
 | --- | --- | --- | --- | --- |
+| PB / 2023 | Cần đo | Cần đo | Không áp dụng | Không áp dụng |
 | B0 / 2023 | Cần đo / cần đo | Cần đo / cần đo | Cần đo | Cần đo |
 | B1 / 2023 | Chưa chạy: N chưa chốt | Chưa chạy | Cần đo | Cần đo |
 | B2 / 2024 | Cần đo | Cần đo | Cần đo | Cần đo |

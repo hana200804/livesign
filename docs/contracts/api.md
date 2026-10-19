@@ -474,6 +474,14 @@ báo riêng là mô phỏng. Giữ kết quả trước/sau admin riêng theo h�
 
 ### Danh sách bổ sung 1.1
 
+Manifest Accept JSON của trace được bổ sung `frames_metadata`, object theo image_id
+chỉ chứa các frame trước cutoff: focal, is_pano, image_width_px, image_height_px,
+geometry_source, heading_source. Các trường thiếu để null, kích thước phải đúng ảnh
+bytes API sẽ trả. Như vậy app re-infer có metadata camera để tuân observation.md;
+trace tối giản không bị tự thêm focal giả. Hash manifest thay đổi khi metadata đổi.
+Với bộ lớn có thể tách representation metadata, nhưng chưa có endpoint mới cho
+cách tách đó: bản đầu phục vụ trong JSON manifest, không trả ref nội bộ app không đọc được.
+
 **`POST /admin/reviews`** — bổ sung cho màn chi tiết candidate/unclear cần admin
 xác nhận thủ công; không tự đưa mọi candidate vào hàng chờ suspected_change.
 Request minh họa: `{"sign_id":"sign-demo-1","reason":"Mở kiểm tra thủ công"}`.

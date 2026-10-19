@@ -242,9 +242,9 @@ GOM cặp; tính α=1+Σw_dương; β=1+Σw_âm; score=α/(α+β)
 ĐẾM cặp dương/âm thật, không trọng số, không tính prior
 TÍNH tuổi dương từ seen gần nhất; tuổi bằng chứng từ seen/not_seen gần nhất
 XÉT từng dấu hiệu mâu thuẫn có đủ tham số/chứng cứ; giữ lý do chưa tính được
-NẾU removed/replaced do admin: giữ trạng thái; không tự hồi sinh
+NẾU removed/replaced do admin: TRẢ trạng thái đó; không tự hồi sinh
 NẾU admin confirm/keep đã duyệt đúng tập chứng cứ và chưa có bằng chứng mới:
-  giữ confirmed_manual hoặc áp dụng unclear nếu đã quá H; không mở lại cùng ca
+  TRẢ confirmed_manual hoặc unclear nếu đã quá H; không mở lại cùng ca
 NẾU có mâu thuẫn đủ cơ sở: suspected_change
 NGƯỢC LẠI nếu từng xác nhận và tuổi mọi bằng chứng > H: unclear
 NGƯỢC LẠI nếu đang unclear/suspected_change:

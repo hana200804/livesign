@@ -168,7 +168,7 @@ CHỈ KHI không phát hiện loại cũ và mọi điều kiện đủ: TRẢ n
 ```
 
 Ví dụ: w=2048,h=1152,focal=0,8 → f_px=1638,4; hFOV≈32,01°;
-vùng giữa 85% → ±27,21°. Biển off=20°, distance=25 m, hướng mặt 180°,
+vùng giữa 85% → ±27,20°. Biển off=20°, distance=25 m, hướng mặt 180°,
 bearing biển→camera=185° → lệch 5°, hai cờ hình học true. Nếu sharp=true nhưng
 unoccluded=null thì **unknown**. Đổi unoccluded=true và đã duyệt bằng chứng âm,
 không có detection đúng → not_seen; có detection đúng → seen.
@@ -243,6 +243,8 @@ GOM cặp; tính α=1+Σw_dương; β=1+Σw_âm; score=α/(α+β)
 TÍNH tuổi dương từ seen gần nhất; tuổi bằng chứng từ seen/not_seen gần nhất
 XÉT từng dấu hiệu mâu thuẫn có đủ tham số/chứng cứ; giữ lý do chưa tính được
 NẾU removed/replaced do admin: giữ trạng thái; không tự hồi sinh
+NẾU admin confirm/keep đã duyệt đúng tập chứng cứ và chưa có bằng chứng mới:
+  giữ confirmed_manual hoặc áp dụng unclear nếu đã quá H; không mở lại cùng ca
 NẾU có mâu thuẫn đủ cơ sở: suspected_change
 NGƯỢC LẠI nếu từng xác nhận và tuổi mọi bằng chứng > H: unclear
 NGƯỢC LẠI nếu đang unclear/suspected_change:

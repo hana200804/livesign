@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Không push thẳng lên main: mọi thay đổi vào main đi qua Pull Request.
+# Không push thẳng lên main hay dev: tạo nhánh từ dev, xong thì mở Pull Request vào dev.
 # Vẫn kiểm tra lại bí mật trên các commit sắp push (phòng commit tạo trước khi bật hook).
 set -euo pipefail
 root=$(git rev-parse --show-toplevel)
@@ -7,13 +7,19 @@ zero=0000000000000000000000000000000000000000
 
 while read -r local_ref local_sha remote_ref remote_sha; do
   [ "$local_sha" = "$zero" ] && continue # xóa nhánh trên remote
-  if [ "$remote_ref" = refs/heads/main ] && [ "${ALLOW_PUSH_MAIN:-}" != 1 ]; then
-    echo "✗ Không push thẳng lên main. Tạo nhánh rồi mở Pull Request:" >&2
-    echo "    git switch -c <phần>/<mô tả>   &&   git push" >&2
-    exit 1
-  fi
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/dev)
+      if [ "${ALLOW_PUSH_PROTECTED:-}" != 1 ]; then
+        echo "✗ Không push thẳng lên ${remote_ref#refs/heads/}. Tạo nhánh từ dev rồi mở Pull Request vào dev:" >&2
+        echo "    git switch dev && git pull --ff-only && git switch -c <phần>/<mô-tả>" >&2
+        echo "    git push && gh pr create --base dev --fill" >&2
+        exit 1
+      fi ;;
+  esac
   if [ "$remote_sha" = "$zero" ]; then
-    base=$(git merge-base "$local_sha" origin/main 2>/dev/null || git rev-list --max-parents=0 "$local_sha" | tail -1)
+    base=$(git merge-base "$local_sha" origin/dev 2>/dev/null \
+      || git merge-base "$local_sha" origin/main 2>/dev/null \
+      || git rev-list --max-parents=0 "$local_sha" | tail -1)
   else
     base=$remote_sha
   fi

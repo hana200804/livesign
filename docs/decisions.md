@@ -55,6 +55,9 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Replay và re-infer | **Cần nhóm quyết:** replay thuần không tạo quan sát mới; re-infer Android dùng trip phiên riêng, giữ sequence/creator/time gốc và model_version, tránh đổi source dưới cùng ID | Trước tích hợp app–API |
 | Hiện trạng mốc theo năm | **Cần nhóm quyết:** chỉ chấm tồn tại/vắng khi có bằng chứng của năm, giữ uncertain/pending riêng; không suy first/last thành hiện trạng chắc mọi năm | Trước khóa bộ mốc |
 | Ghép mốc một–một | **Cần nhóm quyết:** X=5 m/Y=30° dự kiến, matching tối đa số cặp rồi tối thiểu sai số; báo nhạy 3/5/10 m để tránh ưu thế từ thứ tự greedy/dung sai | Trước chấm kết quả |
+| Cấp ảnh và trace replay | **Cần nhóm quyết:** kho ảnh chuẩn bị ngoài git, API kiểm trip/image/cutoff; giới hạn dung lượng trace sau khi đo để replay ổn định và giữ đúng quyền dữ liệu | Trước cung cấp dữ liệu app |
+| Chứng cứ admin đã duyệt | **Cần nhóm quyết:** lưu watermark tập chứng cứ trong history, giữ điểm/âm gốc và chỉ mở lại ca khi có bằng chứng mới để tránh vòng lặp keep | Trước triển khai quyết định admin |
+| Demo quyết định lịch sử | **Cần nhóm quyết:** CSDL demo riêng, manifest scenario_id và nhãn mô phỏng; không bỏ kiểm decided_at trong đánh giá thật | Trước chuẩn bị demo |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

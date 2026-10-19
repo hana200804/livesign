@@ -306,3 +306,175 @@ Khi đánh giá tự động B0–B3, báo kết quả trước duyệt và ph�
 Tạo ứng viên không tự xác nhận. Nếu nhiều loại xuất hiện cùng ảnh/cùng cột thì giữ
 nhiều sign_id. Hệ thống chỉ đề nghị nghi thay đổi khi loại cũ không thấy dù nhìn được,
 cùng vị trí/hướng mặt, đã loại trừ nhiều tấm cùng cột; quyền quyết gỡ/thay thuộc admin.
+
+## Thay đổi 1.1
+
+Phần **bổ sung**, giữ nguyên tên/ý nghĩa endpoint 1.0, role, outcome và trạng thái.
+Các ví dụ mới đều minh họa. Trace theo [trip-trace.md](trip-trace.md); giao diện theo
+[ui.md](../ui.md). Tất cả đường dẫn dưới vẫn có prefix `/api/v1`.
+
+### Danh sách chuyến có thể phát lại
+
+**`GET /trips?evaluation_year=2025&limit=100`** — user/importer/admin.
+Chỉ trả chuyến tài khoản được đọc, có điểm trace hợp lệ trước cutoff; phân trang
+items/next_cursor như 1.0. evaluation_year bắt buộc, lọc thời gian chụp không phải
+thời gian nạp. Chuyến cắt qua biên năm chỉ trả representation trước cutoff.
+
+```json
+{
+  "evaluation_year":2025,
+  "items":[{
+    "trip_id":"illustration:trip-01",
+    "source":"mapillary",
+    "sequence_id":"illustration:sequence-01",
+    "creator_id":"illustration:creator-01",
+    "started_at":"2025-06-02T02:00:00Z",
+    "ended_at":"2025-06-02T02:00:48Z",
+    "trace_schema_version":"1.1",
+    "trace_available":true,
+    "point_count":25,
+    "data_kind":"illustration",
+    "trace_url":"/api/v1/trips/illustration%3Atrip-01/trace?evaluation_year=2025"
+  }],
+  "next_cursor":null
+}
+```
+
+point_count là số điểm representation đã lọc, không phải toàn sequence. ID mẫu không
+tồn tại trên Mapillary; source chỉ mô tả cấu trúc fixture. Đổi year/filter khi dùng
+cursor cũ → 400, không phục vụ nhầm snapshot.
+
+### Trace và manifest của chuyến
+
+**`GET /trips/{trip_id}/trace?evaluation_year=2025`** — cùng quyền đọc trip.
+`Accept: application/x-ndjson` trả JSONL schema 1.1;
+`Accept: application/json` trả manifest của **cùng representation đã lọc cutoff**.
+Không đổi trace_ref cũ âm thầm từ GeoJSON sang JSONL: phải có file/hash mới và manifest.
+
+```json
+{
+  "trip_id":"illustration:trip-01",
+  "trace_schema_version":"1.1",
+  "evaluation_year":2025,
+  "cutoff_exclusive_utc":"2026-01-01T00:00:00Z",
+  "sequence_id":"illustration:sequence-01",
+  "creator_id":"illustration:creator-01",
+  "data_kind":"illustration",
+  "point_count":25,
+  "segment_count":1,
+  "time_precision":"instant",
+  "speed_method":"synthetic_constant",
+  "heading_method":"synthetic",
+  "trace_sha256":"<hash của NDJSON trả về>",
+  "source_trace_sha256":"<hash trace gốc trong kho>",
+  "attribution":"Dữ liệu minh họa, không phải chuyến thật"
+}
+```
+
+Một dòng NDJSON tương ứng, theo file mẫu:
+
+```json
+{"t":"2025-06-02T02:00:00Z","lon":105.84715,"lat":21.023,"heading_deg":0.0,"speed_mps":9.95,"image_id":"illustration:image-001","sequence_id":"illustration:sequence-01","creator_id":"illustration:creator-01","segment_id":0,"data_kind":"illustration"}
+```
+
+200 có Content-Type đúng, ETag theo hash representation; If-None-Match cho phép 304
+sau kiểm quyền. Cache key gồm trip_id/year/hash. 404 nếu không có trip/quyền đọc;
+422 `TRACE_NOT_REPLAYABLE` nếu chỉ có ngày hoặc không chuẩn hóa được timestamp.
+Không bịa giờ/nhịp ảnh từ ngày. Đọc toàn file theo stream giữ thứ tự segment/t;
+**Cần nhóm quyết:** giới hạn kích thước trace ở deployment sau khi đo sequence thật,
+không dùng tùy tiện giới hạn số dòng của batch observation cho trace.
+
+### Ảnh phát lại
+
+**`GET /trips/{trip_id}/images/{image_id}?evaluation_year=2025`** — user/importer/admin.
+Trả bytes image/jpeg hoặc Content-Type ảnh thực trong manifest, ETag hash ảnh và
+attribution. Kiểm image_id thuộc trace được phép và chụp trước cutoff; không cho
+client truy cập ảnh tương lai bằng cách đoán ID. Mọi ID path phải URL encode.
+Không nhận path filesystem/URL tải tùy ý và không trả token Mapillary.
+
+| Trường hợp | HTTP / client |
+| --- | --- |
+| Có ảnh | 200; giải mã, kiểm kích thước, đồng bộ theo image_id/t |
+| Không có ảnh trong kho | 404 `IMAGE_NOT_AVAILABLE`; dừng/bỏ frame có ghi log |
+| Hết JWT | 401; đăng nhập lại, không retry vô hạn |
+| Mất mạng | Dùng cache có quyền/hash/attribution nếu có, hiển thị mất mạng |
+
+**Cần nhóm quyết:** phục vụ ảnh từ kho đã chuẩn bị ngoài git thay vì proxy tức
+thời, để replay ổn định và kiểm quyền/quota. Mẫu illustration không có ảnh thật:
+client hiện placeholder “dữ liệu minh họa”, không cố tải từ Mapillary.
+
+### Chi tiết biển và lịch sử
+
+**`GET /signs/{sign_id}?evaluation_year=2025`** — user/importer/admin.
+Response là một sign đủ các trường/reliability/version/classes_version của item bbox
+1.0, thêm params_version, config_sha256, data_revision, road_ref,
+evidence_available và history_url. 404 nếu sign chưa có trước cutoff; không lấy
+cache sign năm hiện tại rồi đổi nhãn year. Các trường bổ sung ví dụ:
+
+```json
+{"params_version":"prep-2026-10-19","config_sha256":"<hash config đã đóng>","data_revision":"illustration-r001","road_ref":null,"evidence_available":false,"history_url":"/api/v1/signs/sign-demo-1/history?evaluation_year=2025"}
+```
+
+**`GET /signs/{sign_id}/history?evaluation_year=2025&limit=100`** — user/importer/admin.
+Items tăng theo effective_at, recorded_at, history_id; cursor khóa cùng snapshot.
+User không nhận thông tin tài khoản/ghi chú nội bộ; không có password_hash/JWT/raw secrets.
+
+```json
+{
+  "evaluation_year":2025,
+  "items":[{
+    "history_id":"history-demo-1",
+    "sign_id":"sign-demo-1",
+    "event_type":"state_changed",
+    "old_status":"candidate",
+    "new_status":"confirmed_auto",
+    "old_sign_type_code":"P.131a",
+    "new_sign_type_code":"P.131a",
+    "effective_at":"2025-06-02T02:00:00Z",
+    "recorded_at":"2025-06-02T02:00:01Z",
+    "reason":"Minh họa cấu hình thử đã chốt, không phải kết quả đo"
+  }],
+  "next_cursor":null
+}
+```
+
+Lịch sử score/state suy từ ảnh dựng lại trên tập trước cutoff và version đóng;
+không lấy after_snapshot năm sau làm vị trí năm cũ. Admin có hiệu lực khi effective_at
+và decided_at cùng đủ điều kiện. recorded_at của lần nhập dữ liệu lịch sử không
+biến captured_at thành mới; báo rõ đây là đánh giá retrospective.
+
+### Chi tiết ca admin
+
+**`GET /admin/reviews/{review_id}?evaluation_year=2025`** — admin.
+Mở rộng item hàng chờ 1.0: sign_version, reliability_by_year, before/after
+(observation_id, image_id, captured_at, captured_at_precision, outcome,
+visibility_method, evidence_url), replacement_candidates là các sign khác đã có
+bằng chứng. 404 nếu ca không thuộc snapshot; không ráp ảnh sau cutoff từ frontend.
+
+POST decision 1.0 vẫn dùng expected_version của **review**, không phải sign.
+Đề xuất kiểm thêm sign_version trong transaction: nếu thay đổi khi đang xem →409,
+trả version mới, client tải detail và người duyệt xem lại. Không tự gửi lại remove/replace.
+defer giữ pending và tăng version; confirm/keep không xóa quan sát âm hoặc nâng điểm giả.
+
+**Cần nhóm quyết:** lưu watermark tập chứng cứ đã duyệt trong after_snapshot;
+chỉ mở lại ca khi có bằng chứng hợp lệ mới. Lý do: keep không được lặp vô hạn khi
+đọc lại cùng dữ liệu, cũng không được xóa âm để làm hết mâu thuẫn số học.
+
+### Phiên bản snapshot và môi trường demo
+
+Bổ sung params_version, config_sha256 và data_revision vào response bản đồ/chi tiết/
+hàng chờ. Không có endpoint ghi “năm hệ thống”; evaluation_year theo từng request.
+App loại response đến muộn của chuyến/năm cũ. N/θ null vẫn lưu candidate; không tự
+bật confirmed_auto. Chấm bậc cần ngưỡng chưa đóng →422 `PARAMS_NOT_FINALIZED`.
+
+**Cần nhóm quyết:** demo admin năm quá khứ dùng CSDL riêng, manifest scenario_id
+và nhãn “mô phỏng quyết định lịch sử” trên mọi màn. Không bỏ kiểm decided_at bằng
+query trong đánh giá thật. Ảnh trước/sau có thể thật nhưng quyết định tái diễn vẫn
+báo riêng là mô phỏng. Giữ kết quả trước/sau admin riêng theo hợp đồng 1.0.
+
+### Danh sách bổ sung 1.1
+
+- Thêm GET trips, trace/manifest, ảnh replay, sign detail/history và review detail.
+- Thêm hash/cutoff/cache cho representation; làm rõ lỗi trace không đủ thời gian.
+- Bổ sung provenance snapshot, version 409, watermark admin và môi trường demo dự kiến.
+- Không sửa nghĩa, tên cột, trạng thái, quyền hoặc endpoint 1.0.

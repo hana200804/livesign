@@ -51,6 +51,8 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Chống nhắc và liên kết đường | **Cần nhóm quyết:** chống lặp theo lần tiếp cận (15 s/80 m dự kiến), thống nhất road_ref Vietmap–CSDL; giữ D=v×5 s và đo hạn chế trễ trước khi xin thêm đệm | Trước viết cảnh báo |
 | Gói model cho app | **Cần nhóm quyết:** thử input 640 + float16 weights trước, đối chiếu 416/int8 bằng số đo và parity; tensor thực/exporter version phải có manifest để tránh giải mã nhầm | Trước bàn giao model |
 | NMS model | **Cần nhóm quyết:** NMS theo lớp ở client với confidence 0,25/IoU 0,45 dự kiến, khóa bằng tập phát triển, giữ nhiều loại cùng cột | Trước đóng model manifest |
+| Chuẩn replay và tốc độ | **Cần nhóm quyết:** tốc độ theo đoạn GPS/thời gian gốc, gap >10 s hoặc bước >40 m/s tách đoạn, heading camera thiếu để null, mặc định 1x; các ngưỡng cần đo | Trước chuẩn hóa trace |
+| Replay và re-infer | **Cần nhóm quyết:** replay thuần không tạo quan sát mới; re-infer Android dùng trip phiên riêng, giữ sequence/creator/time gốc và model_version, tránh đổi source dưới cùng ID | Trước tích hợp app–API |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

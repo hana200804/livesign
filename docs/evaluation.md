@@ -99,8 +99,9 @@ Thiết kế kiểm logic, không nhận là phát hiện 15 thay đổi ngoài 
    mốc thật hoặc xóa quan sát gốc. Lưu danh sách sign bị tác động và thời điểm tiêm.
 2. Chọn **10 vị trí đã duyệt không có tấm đó** trong ảnh công khai, loại/hướng nằm
    trong danh mục; tạo biển giả với prior history đã xác nhận cho phép thử mâu thuẫn.
-   Mọi bằng chứng dương giả có creator namespace simulation và data_kind scenario,
-   không dùng ID người chụp thật để giả họ đã thấy.
+   Mọi bằng chứng dương giả dùng creator namespace simulation trong seed CSDL riêng,
+   ghi scenario_id ở source_metadata.provenance; không dùng ID người chụp thật để
+   giả họ đã thấy. Không thêm enum simulation vào observation.source hoặc trip.data_kind.
 3. Với **5 tấm thật khác nhau**, copy bản đồ rồi đặt loại cũ sai theo kịch bản tại
    mốc tiêm, giữ loại đúng trong ảnh và GT. Không thay nhãn ảnh/test để chiều model.
    Loại cũ/mới cần có trong 12 lớp, giữ hướng/vị trí và lịch sử tiêm riêng.
@@ -138,6 +139,8 @@ Script chấm sau này xuất các file **ngoài kết quả hiện có**, khôn
 
 result_status: measured/not_run/not_available; số chưa đo để trống CSV, không dùng
 chuỗi “cần đo” trong cột số. Bảng trong quyển chuyển null thành “cần đo/không tính được”.
+data_kind trong **file kết quả** là public_evaluation/simulation/illustration;
+đây không phải enum của bảng trip hoặc payload observation. Mỗi nhóm xuất/báo riêng.
 Các file có nhiều dòng thật không đưa vào data-small; chỉ mẫu nhỏ mới ở repo.
 
 | Bậc / năm | Precision trước / sau duyệt | Coverage trước / sau | Ca admin | Xác nhận auto / manual |

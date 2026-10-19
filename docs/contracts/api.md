@@ -126,7 +126,8 @@ HTTP 200 sau khi ghi bền; endpoint này đồng bộ, chưa hứa có job nề
   vị trí và toàn bộ điều kiện tại observation.md, đồng thời đã duyệt dùng bằng chứng âm.
   N/θ chưa chốt không cản lưu dương, nhưng không được tự chạy bước xác nhận tự động.
 - Không có target ở seen: Backend chỉ tạo/gán biển khi có vị trí ước lượng và loại
-  hợp lệ; hướng thiếu thì giữ candidate, không tự gộp theo hướng.
+  hợp lệ; hướng thiếu thì giữ candidate, không tự gộp theo hướng. Từ 1.2, `core` gom và
+  định vị trong job snapshot; `target_sign_id` trong items là kết quả của job đó.
 - Replay không tăng số cặp: cùng ảnh gốc giữ cùng ID logic; server kiểm tra trùng
   ảnh/target/model và tính cặp từ danh tính người chụp gốc.
 
@@ -467,7 +468,7 @@ hàng chờ. Không có endpoint ghi “năm hệ thống”; evaluation_year th
 App loại response đến muộn của chuyến/năm cũ. N/θ null vẫn lưu candidate; không tự
 bật confirmed_auto. Chấm bậc cần ngưỡng chưa đóng →422 `PARAMS_NOT_FINALIZED`.
 
-**Cần nhóm quyết:** demo admin năm quá khứ dùng CSDL riêng, manifest scenario_id
+Nhóm chốt 19/10 (decisions.md): demo admin năm quá khứ dùng CSDL riêng, manifest scenario_id
 và nhãn “mô phỏng quyết định lịch sử” trên mọi màn. Không bỏ kiểm decided_at bằng
 query trong đánh giá thật. Ảnh trước/sau có thể thật nhưng quyết định tái diễn vẫn
 báo riêng là mô phỏng. Giữ kết quả trước/sau admin riêng theo hợp đồng 1.0.
@@ -496,8 +497,8 @@ Request minh họa: `{"sign_id":"sign-demo-1","reason":"Mở kiểm tra thủ c�
 Response 201: `{"review_id":"review-demo-manual","sign_id":"sign-demo-1","status":"pending","version":1}`.
 Nếu đã có review pending cùng sign, trả 200 ca đó thay vì tạo lặp. Không đổi sign.status
 khi chỉ mở ca; quyết định vẫn qua endpoint 1.0. Role admin, sign/evidence tồn tại;
-403 thiếu quyền, 404 không có sign. **Cần nhóm quyết:** duyệt lối mở ca thủ công
-này để dùng được confirmed_manual mà không giả tạo mâu thuẫn.
+403 thiếu quyền, 404 không có sign. Nhóm chốt 19/10: lối mở ca thủ công này **không
+thuộc MVP**, làm ở mục Nên có của [requirements.md](../requirements.md#phạm-vi-mvp).
 
 - Thêm GET trips, trace/manifest, ảnh replay, sign detail/history và review detail.
 - Thêm POST admin/reviews để mở ca xác nhận thủ công; không đổi hàng chờ nghi.
@@ -516,6 +517,35 @@ mạng theo từng điểm. Không đổi tên, quyền hay nghĩa các endpoint
 `snapshot_run` mới nhất có `status=ready` của năm được hỏi ([db-schema.md](db-schema.md),
 Thay đổi 1.2); không tính lại điểm khi đọc. Response có thêm `snapshot_run_id`.
 Chưa có lần chạy sẵn sàng cho năm đó → 503 `SNAPSHOT_NOT_READY`, client thử lại sau.
+
+**Giữ một run cho cả phiên.** Các endpoint trên và `/signs/{sign_id}/history` nhận thêm
+`snapshot_run_id` tùy chọn. Có tham số → đọc đúng run đó, kể cả khi đã `superseded`; run
+khác năm được hỏi → 422; run đã bị dọn → 410 `SNAPSHOT_RUN_GONE`, client mở phiên mới.
+Không có → run `ready` mới nhất, response trả `snapshot_run_id` để client dùng cho các lần
+gọi sau (trang tiếp, chi tiết, history). History chỉ gồm dòng có `input_seq` không quá run
+([db-schema.md](db-schema.md), Thay đổi 1.2), để quyết định ghi sau khi run công bố không
+hiện trong lịch sử mà trạng thái của run chưa có.
+
+### Lưu thành công nhưng dựng lỗi
+
+`POST /observations/batch` và `POST /admin/reviews/{review_id}/decision` dựng lại run các
+năm bị ảnh hưởng trước khi trả lời. Response 200 có thêm:
+
+```json
+{"snapshot_runs":[{"evaluation_year":2025,"status":"ready","run_id":"run-2025-illustration-02"}]}
+```
+
+Dữ liệu hoặc quyết định đã commit nhưng dựng lỗi → **503 `SNAPSHOT_BUILD_FAILED`**, body
+vẫn đủ counts/items (lô) hoặc review/version mới (quyết định) như khi 200, cùng
+`snapshot_runs` có `status:"failed"` ở năm lỗi; run cũ vẫn phục vụ. Client:
+
+- Lô: gửi lại **đúng lô** đó. Các dòng thành `duplicate`, không nhân bằng chứng, nhưng server
+  vẫn dựng lại năm có run chậm hơn `data_state.input_seq`.
+- Quyết định: **không** gửi lại decision. Tải lại review/version, rồi gọi endpoint dựng lại dưới đây.
+
+**`POST /admin/snapshots/rebuild`** — admin; body tùy chọn `{"evaluation_year":2025}`.
+Dựng lại các năm có run chậm hơn dữ liệu đã lưu; năm đã khớp thì trả run hiện có, không
+dựng lặp. Response như `snapshot_runs` ở trên. Server cũng tự làm việc này khi khởi động lại.
 Bảng này là bản đồ sản phẩm (đã áp dụng quyết định admin); bản trước duyệt cho thực
 nghiệm do CLI đánh giá xuất ra CSV, không qua API.
 
@@ -556,18 +586,27 @@ của chuyến, cùng tham số nhắc để app lọc biển phía trước **c
 }
 ```
 
-`alertable=false` khi biển thiếu hướng mặt, chỉ có `single_view`, là candidate/removed/
+`alert_params` có thêm `corridor_buffer_m`. `alertable=false` khi biển thiếu hướng mặt, chỉ có `single_view`, là candidate/removed/
 replaced hoặc không áp dụng cho loại xe — app vẫn vẽ trên bản đồ nhưng không nhắc.
 `warning_label` theo bảng trạng thái 1.0. Không phân trang: một chuyến demo chỉ có vài chục
 đến vài trăm biển; vượt `limit` 500 thì trả 413 để chia chuyến.
 
 App lọc cục bộ đúng luật của `/signs/ahead` (khoảng cách
-`speed × (warning_min_lead_s + warning_latency_buffer_s)`, hai ngưỡng góc, loại xe,
-chống nhắc lặp) với **tham số lấy từ `alert_params`**, không chép số vào code app.
-`/signs/ahead` giữ làm bản tham chiếu: test đối chiếu chạy cùng trace qua cả hai cách.
+`speed × (warning_min_lead_s + warning_latency_buffer_s)`, hai ngưỡng góc, loại xe) với
+**tham số lấy từ `alert_params`**, không chép số vào code app; chống nhắc lặp là trạng thái
+phiên của app, chạy sau bước lọc. Biển ngoài `corridor_buffer_m` quanh trace là biển chuyến
+không đi qua (sau điểm cuối, đường nhánh), không nhắc kể cả khi nằm trong D.
+
+`/signs/ahead` giữ làm bản tham chiếu. Test đối chiếu: cùng `snapshot_run_id`, điểm, xe,
+tham số; so danh sách **ứng viên trước chống lặp** của app với items của `/signs/ahead`
+**giao** tập biển dọc chuyến. Chênh lệch chỉ được phép ở biển ngoài vùng đó.
 
 ### Danh sách bổ sung 1.2
 
 - Các endpoint bản đồ đọc `sign_snapshot`; thêm `snapshot_run_id` và lỗi 503 `SNAPSHOT_NOT_READY`.
-- Thêm `GET /trips/{trip_id}/signs` trả biển dọc chuyến + `alert_params` cho lọc cục bộ.
+- Thêm `GET /trips/{trip_id}/signs` trả biển dọc chuyến + `alert_params` (có `corridor_buffer_m`) cho lọc cục bộ.
+- Tham số `snapshot_run_id` tùy chọn cho mọi endpoint bản đồ/chi tiết/history; 410 `SNAPSHOT_RUN_GONE`.
+- 503 `SNAPSHOT_BUILD_FAILED` khi đã lưu nhưng dựng lỗi; thêm `snapshot_runs` trong response ghi và `POST /admin/snapshots/rebuild`.
+- Test đối chiếu so ứng viên trước chống lặp, trong vùng biển dọc chuyến.
 - Item biển có thêm `location_method`, `facing_source`, `alertable`.
+- `GET /signs` cho thêm role importer đọc, để batch AI lấy vị trí/hướng mặt khi tạo not_seen ở lượt 2.

@@ -19,10 +19,22 @@ file repo trong [bảng đối chiếu](preparation-audit.md), và phản hồi 
 | Định vị sau khi gom lần thấy | Batch AI gửi tư thế camera, bbox, `feature_candidates`; `core` định vị sau khi gom; not_seen tạo ở lượt 2 sau snapshot | Nhóm qua người dùng | 19/10 |
 | Danh mục | 12 mã trong classes.yaml; đã đối chiếu phụ lục B/C/E QCVN chính thức; nguồn nhãn train còn mở | Nhóm duyệt có điều kiện; đã hoàn tất đối chiếu QCVN | 19/10 |
 | Vùng ứng viên | Giữ vùng quanh ba ô rank đầu Hoàn Kiếm; **chưa chốt tuyến demo** | Nhóm qua người dùng | 19/10 |
-| N và θ | Giữ **null** ở giá trị vận hành; chỉ ghi ứng viên N=3, θ=0,75. V3.3 nêu N dự kiến 2 và dải 2–3, chưa phải chốt | Nhóm qua người dùng | 19/10 |
+| N và θ | Giữ **null** ở giá trị vận hành; chỉ ghi ứng viên N=3, θ=0,75. V3.3 nêu N dự kiến 2 và dải 2–3, chưa phải chốt. Phải có value trước lần dựng snapshot thật ([Phạm vi MVP](requirements.md#phạm-vi-mvp)) | Nhóm qua người dùng | 19/10 |
 | Dữ liệu | Chỉ Mapillary và dataset công khai; không có bước nhóm đi thu dữ liệu | Nhóm / v3.3 | Trước mọi lần nạp |
 | Stack lõi | Kotlin/CameraX/TFLite/Vietmap/TTS; Spring Boot một khối + JWT; MySQL 8; Python/Ultralytics; Web React/Leaflet | V3.3 | Trước khởi tạo |
-| Thành phần tùy chọn | MinIO có thể thay bằng ổ đĩa ban đầu; Redis/RT-DETR/FastAPI chỉ khi thật sự cần, sau mốc nghiệm thu phù hợp và ý kiến GVHD | V3.3, còn hỏi GVHD về phiếu giao đề tài | Trước mở rộng |
+| Thành phần tùy chọn | MinIO thuộc Nên có, MVP dùng ổ đĩa; Redis/DETR/RT-DETR/FastAPI không làm ([Phạm vi MVP](requirements.md#phạm-vi-mvp)) | V3.3; nhóm qua người dùng, không chờ GVHD | 19/10 |
+| Phạm vi MVP | Bắt buộc / Nên có / Không làm, phụ thuộc chưa có số và 7 tiêu chí hoàn thành ở [requirements.md](requirements.md#phạm-vi-mvp); Nên có chỉ bắt đầu sau khi MVP đạt | Nhóm qua người dùng | 19/10 |
+| Không chờ GVHD | Nhóm làm theo đề xuất ở ba câu hỏi v3.3 (mục cuối file), không đợi trả lời mới bắt đầu; GVHD góp ý sau thì cập nhật file này | Nhóm qua người dùng | 19/10 |
+| Khoảng giữa B3 | Bài thử trong [30%,50%): không bật âm cho bản đồ sản phẩm; B3 chỉ chạy trong CLI như phân tích phụ, báo kèm tỷ lệ bài thử. Ngưỡng 50%/30% không đổi | Nhóm qua người dùng | 19/10 |
+| Cài đặt xe trên app | Lưu lựa chọn xe/TTS cục bộ, không thêm API ghi hồ sơ xe | Nhóm qua người dùng | 19/10 |
+| Mở ca xác nhận thủ công | `POST /admin/reviews` (API 1.1) và `POST /admin/signs` không thuộc MVP, nằm ở Nên có; đặc tả giữ nguyên trong api.md | Nhóm qua người dùng | 19/10 |
+| Cấu hình triển khai | JWT HS256, khóa ≥32 byte từ `LIVESIGN_JWT_SECRET`; `LIVESIGN_DATA_ROOT` cho kho ảnh/manifest; `LIVESIGN_API_BASE_URL` cho app qua local.properties; thêm vào .env.example khi khởi tạo project ([architecture.md](architecture.md)) | Nhóm qua người dùng | 19/10 |
+| Post_review cutoff nghiêm | CLI post_review áp quyết định có cả effective_at và decided_at trước cutoff như API; quyết định làm năm 2026 thì post bằng pre, ghi số áp dụng = 0 ([evaluation.md](evaluation.md)) | Nhóm qua người dùng | 19/10 |
+| Gom đa ảnh trước định vị | Bốn bước: theo feature → theo vết trong sequence → định vị track → gộp track vào registry; track_max_gap 3 s/30 m dự kiến, kiểm trên 500 m ([algorithms.md](algorithms.md)) | Nhóm qua người dùng | 19/10 |
+| Snapshot khi lỗi và giữ run | 503 `SNAPSHOT_BUILD_FAILED` sau khi đã lưu, retry lô dựng lại phần thiếu, `POST /admin/snapshots/rebuild`; công bố chỉ khi input_seq không lùi; phiên giữ `snapshot_run_id` ([api.md](contracts/api.md), [db-schema.md](contracts/db-schema.md)) | Nhóm qua người dùng | 19/10 |
+| Vùng biển dọc chuyến | Giữ 50 m quanh trace; biển ngoài vùng là biển chuyến không đi qua, không nhắc; đối chiếu `/signs/ahead` trong tập này, trước chống lặp | Nhóm qua người dùng | 19/10 |
+| Ngoại lệ feature Mapillary | Dùng vị trí feature hiện tại cho năm cũ là ngoại lệ có công bố; báo tỷ lệ và dòng độ nhạy tắt feature | Nhóm qua người dùng | 19/10 |
+| Môi trường mô phỏng/demo | CSDL demo riêng, manifest `scenario_id`, nhãn “mô phỏng” trên mọi màn; bản params riêng (params_version khác) được bật `negative_evidence_enabled`; đánh giá thật vẫn kiểm decided_at và không dùng bản params này | Nhóm qua người dùng | 19/10 |
 | Ba outcome | seen / not_seen / unknown; âm phải đủ điều kiện nhìn được ≤30 m; unknown không cập nhật điểm/độ mới | V3.3 + yêu cầu hiện tại | Trước tích hợp |
 | Đơn vị bằng chứng | Cặp (creator_id, năm), dương ưu tiên nếu cùng cặp có cả seen và not_seen; prior không tính N | V3.3 | Trước triển khai điểm |
 | Công thức tham chiếu | α=1+Σw dương; β=1+Σw âm; w=0,5^(T−t); điểm/độ mới/mâu thuẫn hiển thị riêng | V3.3; hệ số được thử trên dữ liệu trước mốc chấm | Trước đánh giá |
@@ -44,7 +56,7 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Hệ năm / timestamp | Đề xuất chuẩn hóa UTC; ngày PoC chỉ precision=day; khôi phục timestamp gốc để xử lý sát biên năm | Trước đóng manifest |
 | Khôi phục tập PoC | 357 dòng kết quả/333 ảnh; manifest hiện 353 dòng/332 ảnh, chỉ khớp 59 cặp. Khôi phục đúng manifest/ảnh gốc theo ID, không chạy fetch lại rồi coi là cùng tập | Trước gán nhãn/train thử |
 | Ánh xạ và đủ mẫu 12 lớp | Tải Zalo/Roboflow/Kaggle, ghi version/giấy phép, số ảnh, nhãn chi tiết; nếu không đủ thì đề nghị nhóm thay lớp | Tuần 1–2 |
-| Giữ hay bỏ B3 | ≥50% giữ; <30% bỏ; [30%,50%) chưa có quyết định trong v3.3, nhóm xem lỗi/độ tin cậy trước khi chọn. Chưa bật bằng chứng âm | 25/10 |
+| Giữ hay bỏ B3 | Chạy bài thử để có tỷ lệ; ≥50% giữ, <30% bỏ, khoảng giữa theo quyết định đã chốt ở trên. Chưa bật bằng chứng âm | 25/10 |
 | Tài khoản/key/Drive | Mỗi người token Mapillary riêng; key/quota Vietmap; PAT chỉ đọc cho Colab; cả nhóm kiểm tra Drive | Trước làm việc tuần 1 |
 | Điều khoản dataset / feature Mapillary | Ghi rõ giấy phép từng dataset version; tách điều khoản ảnh và dữ liệu feature; không công bố lại dữ liệu thô khi chưa kiểm tra | Trước dùng/chia sẻ dữ liệu |
 | Khả năng chạy MySQL/SDK | Docker daemon hiện chưa kết nối; MySQL DDL chưa chạy. JDK/Studio/TFLite/key trên từng máy chưa được xác nhận | 25/10 |
@@ -63,15 +75,12 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Ghép mốc một–một | **Cần nhóm quyết:** X=5 m/Y=30° dự kiến, matching tối đa số cặp rồi tối thiểu sai số; báo nhạy 3/5/10 m để tránh ưu thế từ thứ tự greedy/dung sai | Trước chấm kết quả |
 | Cấp ảnh và trace replay | **Cần nhóm quyết:** kho ảnh chuẩn bị ngoài git, API kiểm trip/image/cutoff; giới hạn dung lượng trace sau khi đo để replay ổn định và giữ đúng quyền dữ liệu | Trước cung cấp dữ liệu app |
 | Chứng cứ admin đã duyệt | **Cần nhóm quyết:** lưu watermark tập chứng cứ trong history, giữ điểm/âm gốc và chỉ mở lại ca khi có bằng chứng mới để tránh vòng lặp keep | Trước triển khai quyết định admin |
-| Demo quyết định lịch sử | **Cần nhóm quyết:** CSDL demo riêng, manifest scenario_id và nhãn mô phỏng; không bỏ kiểm decided_at trong đánh giá thật | Trước chuẩn bị demo |
 | Lưu metadata frame | **Cần nhóm quyết:** thêm metadata trace vào trip, image lookup ở manifest bất biến ngoài git, chưa thêm bảng ảnh; đo trước khi tăng độ phức tạp CSDL | Trước migration CSDL |
 | Split và phiên bản dataset | **Cần nhóm quyết:** khóa nguồn/version sau kiểm đếm, giữ nhóm trùng cùng split và test Hà Nội độc lập; chưa cam kết tỷ lệ khi thiếu count thực | Trước train |
 | Augment biển | **Cần nhóm quyết:** tắt flip ngang, chỉ thử augment không làm đổi nghĩa biển trên validation; không để thư viện tự đổi cấu hình giữa các run | Trước khóa train config |
 | Tiling batch | **Cần nhóm quyết:** so toàn ảnh với ô 640/chồng 20% trên cùng tập phát triển; chọn bằng recall/time, không suy tiling luôn tốt từ PoC | Trước chạy batch chính |
 | Đối sánh bài thử B3 | **Cần nhóm quyết:** đúng lớp/tấm + IoU≥0,50 với bbox gán độc lập, khóa trước thử để không nhầm tấm đúng hướng | Trước quyết định B3 |
-| Cấu hình triển khai còn thiếu | **Cần nhóm quyết:** cơ chế JWT signing, đường dẫn evidence và base URL app; bổ sung .env.example trong thay đổi cấu hình riêng được duyệt, không hard-code trong tài liệu | Trước triển khai |
-| Cài đặt xe trên app | **Cần nhóm quyết:** lưu lựa chọn xe/TTS cục bộ, chưa thêm API ghi hồ sơ; tránh mở endpoint chỉ vì schema có bảng | Trước viết cài đặt |
-| Mở ca xác nhận thủ công | **Cần nhóm quyết:** POST admin/reviews tạo hoặc lấy ca pending của candidate/unclear, rồi dùng decision hiện có; không giả candidate là nghi thay đổi | Trước viết màn chi tiết admin |
+| Duyệt hồi cứu | **Cần nhóm quyết:** có chạy phép thử riêng dùng effective_at theo ảnh cũ hay không; nếu chạy thì nhãn và bảng riêng, không trộn với trước/sau cutoff nghiêm. Không chặn MVP | Sau MVP |
 | Tập chọn tham số | **Cần nhóm quyết:** dùng dữ liệu ≤2022 để chọn tham số cho ba mốc 2023–2025; nếu thiếu thì công bố ngưỡng quy ước và phân tích nhạy, không tune trên năm được chấm | Trước chạy thang đối chứng |
 | Kịch bản tiêm mô phỏng | **Cần nhóm quyết:** khóa seed, 10 biển giả/5 tấm đổi, prior giả và thứ tự replay trong CSDL riêng; giữ control/censored và báo riêng ca thật | Trước mô phỏng |
 | Quy trình đo thiết bị | **Cần nhóm quyết:** ít nhất 3 lượt 1x, làm nóng 30 s, pin 10 phút; khóa t_gặp/TTS và ngưỡng FPS/latency/pin sau pilot, không bịa chỉ tiêu | Trước đo app |
@@ -99,13 +108,14 @@ các bổ sung đặt trong mục Thay đổi 1.1.
 
 ## Ba câu hỏi gửi GVHD trong v3.3
 
-Chưa có bằng chứng đã gửi hoặc đã được trả lời. Nhóm tự gửi; lần chuẩn bị này không gửi thay.
+Nhóm chốt 19/10: không chờ trả lời, làm theo cột đề xuất. Nếu GVHD góp ý khác thì cập
+nhật Phạm vi MVP và bảng Đã chốt; lần chuẩn bị này không gửi thay.
 
 | Câu hỏi | Đề xuất kèm lý do | Trạng thái / ai chốt | Hạn dự kiến |
 | --- | --- | --- | --- |
-| Cô có chấp nhận đánh giá bằng ảnh Mapillary cho đồ án không? | Xin chấp nhận dữ liệu công khai và đánh giá lịch sử phát lại, kèm số liệu/giới hạn tuần 1 | Còn mở; GVHD TS. Đào Thị Thúy Quỳnh | Hết tuần 1 |
-| Trọng tâm quản lý độ tin cậy bản đồ và câu hỏi nghiên cứu của v3.3 có phù hợp không? | Giữ trọng tâm, chứng minh bằng B0–B3, precision/coverage và số ca admin thay vì chỉ mAP model | Còn mở; GVHD | Hết tuần 1 |
-| Phiếu giao đề tài có bắt buộc DETR, Redis, MinIO hay được chuyển sang phần mở rộng? | Xin giữ tùy chọn để tập trung luồng lõi theo stack v3.3 | Còn mở; GVHD | Trước khởi tạo/thêm thành phần |
+| Cô có chấp nhận đánh giá bằng ảnh Mapillary cho đồ án không? | Xin chấp nhận dữ liệu công khai và đánh giá lịch sử phát lại, kèm số liệu/giới hạn tuần 1 | Làm theo đề xuất, không chờ; GVHD TS. Đào Thị Thúy Quỳnh | — |
+| Trọng tâm quản lý độ tin cậy bản đồ và câu hỏi nghiên cứu của v3.3 có phù hợp không? | Giữ trọng tâm, chứng minh bằng B0–B3, precision/coverage và số ca admin thay vì chỉ mAP model | Làm theo đề xuất, không chờ | — |
+| Phiếu giao đề tài có bắt buộc DETR, Redis, MinIO hay được chuyển sang phần mở rộng? | Xin giữ tùy chọn để tập trung luồng lõi theo stack v3.3 | Làm theo đề xuất: ngoài MVP, không chờ | — |
 
 ## Vòng đời phải giữ khi triển khai
 
@@ -127,6 +137,8 @@ Chưa có bằng chứng đã gửi hoặc đã được trả lời. Nhóm tự
 Độc lập theo tài khoản chỉ là đại diện gần đúng; điểm Beta là quy ước chưa hiệu chỉnh.
 Các ca giả/thay loại trong CSDL là mô phỏng; không chứng minh hiệu quả ngoài đường.
 Mapillary feature chỉ là gợi ý/đối chứng, không dùng train hay làm bộ mốc chuẩn.
+Vị trí feature hiện tại dùng cho năm cũ là ngoại lệ dữ liệu tương lai, phải báo tỷ lệ và độ nhạy.
+PB → B0 là tác dụng của cả gói định vị + gộp có hướng + loại biển chưa định vị, trừ khi đã chạy các dòng kiểm soát.
 Bộ mốc phải duyệt toàn đoạn, 20% tấm biển gán chéo; mô phỏng 10 biển giả + thay 5 biển,
 ca thật tìm từ ảnh công khai nhiều năm và báo riêng. Không nêu tên/so sánh với đồ án cụ thể;
 phương án đối chứng gọi là **cách làm phổ biến hiện nay**.

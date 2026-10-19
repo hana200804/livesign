@@ -1,0 +1,36 @@
+# Nguồn: đề cương v3.3, mục Điểm tin cậy / Đánh giá; phản hồi nhóm 19/10/2026.
+# Đây là cấu hình đặc tả, chưa phải cấu hình mà một ứng dụng đang chạy đã đọc.
+schema_version: "1.0"
+status: "dự kiến"
+
+reliability:
+  N: {value: null, proposed: 3, unit: pair, status: "dự kiến"} # Số cặp dương thật để tự xác nhận; chưa được nhóm chốt, không tính prior hay trọng số.
+  theta: {value: null, proposed: 0.75, unit: ratio, status: "dự kiến"} # θ: điểm đồng thuận tối thiểu để tự xác nhận; chốt trên dữ liệu trước mốc chấm điểm.
+  theta_low: {value: null, proposed: 0.40, unit: ratio, status: "dự kiến"} # θ_thấp: ngưỡng mâu thuẫn cho biển từng xác nhận; phải nhỏ hơn θ.
+  H: {value: 2, unit: year, status: "dự kiến"} # Quá 2 năm không có bằng chứng mới kể cả âm thì biển từng xác nhận thành CHƯA RÕ; thử trước khi chốt.
+  K: {value: 2, unit: pair, status: "dự kiến"} # Hai cặp gần nhất đều âm là dấu hiệu mâu thuẫn; unknown không tạo cặp.
+  alpha_prior: {value: 1, unit: weight, status: "đã chốt"} # Prior α theo v3.3; không được tính là một người/cặp đã thấy.
+  beta_prior: {value: 1, unit: weight, status: "đã chốt"} # Prior β theo v3.3; không phải bằng chứng âm thực tế.
+  decay_base: {value: 0.5, unit: ratio_per_year, status: "dự kiến"} # Hệ số trong w=0.5^(T-t), thử trên dữ liệu năm trước mốc đánh giá.
+  decay_formula: {value: "0.5^(T-t)", status: "đã chốt"} # Công thức tham chiếu của v3.3; T/t là năm nguyên, không dùng thời điểm nạp dữ liệu.
+
+geometry:
+  visibility_max_distance_m: {value: 30, unit: m, status: "đã chốt"} # Điều kiện khoảng cách ≤30 m; còn phải đủ góc nhìn, hướng mặt, nét, không che.
+  merge_radius_m: {value: 20, unit: m, status: "dự kiến"} # Bán kính gộp ban đầu; khác loại hoặc khác hướng không được gộp chỉ vì gần nhau.
+  merge_max_facing_diff_deg: {value: 30, unit: degree, status: "dự kiến"} # Chênh lệch tròn nhỏ nhất giữa hai hướng mặt biển; chưa biết hướng thì không tự gộp theo hướng.
+  perspective_frame_keep: {value: 0.85, unit: ratio, status: "dự kiến"} # Giữ vùng giữa 85% nửa góc ngang, bắt nguồn PoC; không thay thế kiểm tra nhìn được.
+  default_focal: {value: 0.8, unit: normalized_long_edge, status: "đã chốt"} # Khớp geometry.py; chỉ fallback hình học, không đủ để tạo bằng chứng âm khi thiếu camera.
+  warning_min_lead_s: {value: 5, unit: s, status: "đã chốt"} # Mục tiêu đánh giá nhắc kịp của v3.3; khoảng cách ứng viên bằng tốc độ m/s nhân 5.
+
+evaluation:
+  years_T: {value: [2023, 2024, 2025], unit: year, status: "đã chốt"} # Ba bản đồ ở hết mỗi năm, so với bộ mốc của chính năm đó.
+  cutoff_exclusive_utc: {value: ["2024-01-01T00:00:00Z", "2025-01-01T00:00:00Z", "2026-01-01T00:00:00Z"], status: "dự kiến"} # Đề xuất chuẩn hóa UTC: captured_at nhỏ hơn cutoff tương ứng, không đọc dữ liệu tương lai.
+  baseline_merge_radius_m: {value: 20, unit: m, status: "đã chốt"} # B0: cách làm phổ biến hiện nay, vị trí ảnh + gộp cùng loại trong 20 m.
+  retain_negative_evidence_min: {value: 0.50, unit: ratio, status: "đã chốt"} # Giữ B3 khi phát hiện ≥50% trên mẫu nhìn rõ đã kiểm tra, ảnh 2048px.
+  drop_negative_evidence_below: {value: 0.30, unit: ratio, status: "đã chốt"} # Dưới 30% bỏ B3; khoảng [30%,50%) còn mở, không tự suy quyết định.
+  human_audit_images: {value: 60, unit: image, status: "đã chốt"} # Người duyệt ngẫu nhiên 60 ảnh và mọi ảnh model gán nhãn không chắc.
+
+workflow:
+  classes_version: {value: "qcvn12-2026-10-19", status: "dự kiến"} # Khớp classes.yaml; bộ mã được nhóm duyệt, ánh xạ dataset vẫn chưa xác minh.
+  corridor_status: {value: candidate, status: "đã chốt"} # Nhóm duyệt giữ vùng top 3 là ứng viên, chưa chốt đường demo.
+  negative_evidence_enabled: {value: null, status: "dự kiến"} # Chỉ chốt sau bài thử 2048px tuần 1; null không cho tạo not_seen tự động.

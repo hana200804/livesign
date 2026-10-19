@@ -19,7 +19,7 @@ file repo trong [bảng đối chiếu](preparation-audit.md), và phản hồi 
 | Định vị sau khi gom lần thấy | Batch AI gửi tư thế camera, bbox, `feature_candidates`; `core` định vị sau khi gom; not_seen tạo ở lượt 2 sau snapshot | Nhóm qua người dùng | 19/10 |
 | Danh mục | 12 mã trong classes.yaml; đã đối chiếu phụ lục B/C/E QCVN chính thức; nguồn nhãn train còn mở | Nhóm duyệt có điều kiện; đã hoàn tất đối chiếu QCVN | 19/10 |
 | Vùng ứng viên | Giữ vùng quanh ba ô rank đầu Hoàn Kiếm; **chưa chốt tuyến demo** | Nhóm qua người dùng | 19/10 |
-| N và θ | Giữ **null** ở giá trị vận hành; chỉ ghi ứng viên N=3, θ=0,75. V3.3 nêu N dự kiến 2 và dải 2–3, chưa phải chốt | Nhóm qua người dùng | 19/10 |
+| N và θ | Giữ **null** ở giá trị vận hành; chỉ ghi ứng viên N=3, θ=0,75. V3.3 nêu N dự kiến 2 và dải 2–3, chưa phải chốt. Phải có value trước lần dựng snapshot thật ([Phạm vi MVP](requirements.md#phạm-vi-mvp)) | Nhóm qua người dùng | 19/10 |
 | Dữ liệu | Chỉ Mapillary và dataset công khai; không có bước nhóm đi thu dữ liệu | Nhóm / v3.3 | Trước mọi lần nạp |
 | Stack lõi | Kotlin/CameraX/TFLite/Vietmap/TTS; Spring Boot một khối + JWT; MySQL 8; Python/Ultralytics; Web React/Leaflet | V3.3 | Trước khởi tạo |
 | Thành phần tùy chọn | MinIO thuộc Nên có, MVP dùng ổ đĩa; Redis/DETR/RT-DETR/FastAPI không làm ([Phạm vi MVP](requirements.md#phạm-vi-mvp)) | V3.3; nhóm qua người dùng, không chờ GVHD | 19/10 |
@@ -27,7 +27,8 @@ file repo trong [bảng đối chiếu](preparation-audit.md), và phản hồi 
 | Không chờ GVHD | Nhóm làm theo đề xuất ở ba câu hỏi v3.3 (mục cuối file), không đợi trả lời mới bắt đầu; GVHD góp ý sau thì cập nhật file này | Nhóm qua người dùng | 19/10 |
 | Khoảng giữa B3 | Bài thử trong [30%,50%): không bật âm cho bản đồ sản phẩm; B3 chỉ chạy trong CLI như phân tích phụ, báo kèm tỷ lệ bài thử. Ngưỡng 50%/30% không đổi | Nhóm qua người dùng | 19/10 |
 | Cài đặt xe trên app | Lưu lựa chọn xe/TTS cục bộ, không thêm API ghi hồ sơ xe | Nhóm qua người dùng | 19/10 |
-| Mở ca xác nhận thủ công | `POST /admin/reviews` (API 1.1) không thuộc MVP, nằm ở Nên có; đặc tả giữ nguyên trong api.md | Nhóm qua người dùng | 19/10 |
+| Mở ca xác nhận thủ công | `POST /admin/reviews` (API 1.1) và `POST /admin/signs` không thuộc MVP, nằm ở Nên có; đặc tả giữ nguyên trong api.md | Nhóm qua người dùng | 19/10 |
+| Môi trường mô phỏng/demo | CSDL demo riêng, manifest `scenario_id`, nhãn “mô phỏng” trên mọi màn; bản params riêng (params_version khác) được bật `negative_evidence_enabled`; đánh giá thật vẫn kiểm decided_at và không dùng bản params này | Nhóm qua người dùng | 19/10 |
 | Ba outcome | seen / not_seen / unknown; âm phải đủ điều kiện nhìn được ≤30 m; unknown không cập nhật điểm/độ mới | V3.3 + yêu cầu hiện tại | Trước tích hợp |
 | Đơn vị bằng chứng | Cặp (creator_id, năm), dương ưu tiên nếu cùng cặp có cả seen và not_seen; prior không tính N | V3.3 | Trước triển khai điểm |
 | Công thức tham chiếu | α=1+Σw dương; β=1+Σw âm; w=0,5^(T−t); điểm/độ mới/mâu thuẫn hiển thị riêng | V3.3; hệ số được thử trên dữ liệu trước mốc chấm | Trước đánh giá |
@@ -68,7 +69,6 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Ghép mốc một–một | **Cần nhóm quyết:** X=5 m/Y=30° dự kiến, matching tối đa số cặp rồi tối thiểu sai số; báo nhạy 3/5/10 m để tránh ưu thế từ thứ tự greedy/dung sai | Trước chấm kết quả |
 | Cấp ảnh và trace replay | **Cần nhóm quyết:** kho ảnh chuẩn bị ngoài git, API kiểm trip/image/cutoff; giới hạn dung lượng trace sau khi đo để replay ổn định và giữ đúng quyền dữ liệu | Trước cung cấp dữ liệu app |
 | Chứng cứ admin đã duyệt | **Cần nhóm quyết:** lưu watermark tập chứng cứ trong history, giữ điểm/âm gốc và chỉ mở lại ca khi có bằng chứng mới để tránh vòng lặp keep | Trước triển khai quyết định admin |
-| Demo quyết định lịch sử | **Cần nhóm quyết:** CSDL demo riêng, manifest scenario_id và nhãn mô phỏng; không bỏ kiểm decided_at trong đánh giá thật | Trước chuẩn bị demo |
 | Lưu metadata frame | **Cần nhóm quyết:** thêm metadata trace vào trip, image lookup ở manifest bất biến ngoài git, chưa thêm bảng ảnh; đo trước khi tăng độ phức tạp CSDL | Trước migration CSDL |
 | Split và phiên bản dataset | **Cần nhóm quyết:** khóa nguồn/version sau kiểm đếm, giữ nhóm trùng cùng split và test Hà Nội độc lập; chưa cam kết tỷ lệ khi thiếu count thực | Trước train |
 | Augment biển | **Cần nhóm quyết:** tắt flip ngang, chỉ thử augment không làm đổi nghĩa biển trên validation; không để thư viện tự đổi cấu hình giữa các run | Trước khóa train config |

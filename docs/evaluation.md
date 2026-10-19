@@ -187,7 +187,7 @@ Recall tại confidence/NMS đã khóa; số đếm theo lớp/bbox nhỏ/pano/n
 So PyTorch/TFLite và float16/int8 bằng cùng test, không chỉ so kích thước file.
 
 Bài thử B3 là phép đo phát hiện trên **ảnh nhìn rõ** riêng ở [ai-pipeline.md](ai-pipeline.md),
-không thay bằng mAP tổng. Mốc ≥50%/<30% của params không đổi; khoảng giữa còn mở.
+không thay bằng mAP tổng. Mốc ≥50%/<30% của params không đổi; khoảng giữa: B3 chỉ là phân tích phụ, không bật âm cho sản phẩm (decisions.md).
 
 ## Đo Android thật
 

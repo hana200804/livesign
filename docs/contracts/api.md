@@ -467,7 +467,7 @@ hàng chờ. Không có endpoint ghi “năm hệ thống”; evaluation_year th
 App loại response đến muộn của chuyến/năm cũ. N/θ null vẫn lưu candidate; không tự
 bật confirmed_auto. Chấm bậc cần ngưỡng chưa đóng →422 `PARAMS_NOT_FINALIZED`.
 
-**Cần nhóm quyết:** demo admin năm quá khứ dùng CSDL riêng, manifest scenario_id
+Nhóm chốt 19/10 (decisions.md): demo admin năm quá khứ dùng CSDL riêng, manifest scenario_id
 và nhãn “mô phỏng quyết định lịch sử” trên mọi màn. Không bỏ kiểm decided_at bằng
 query trong đánh giá thật. Ảnh trước/sau có thể thật nhưng quyết định tái diễn vẫn
 báo riêng là mô phỏng. Giữ kết quả trước/sau admin riêng theo hợp đồng 1.0.

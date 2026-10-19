@@ -61,7 +61,7 @@ flowchart LR
 | Luồng chính | Lấy sign-types cùng version → gửi GET signs theo bbox/năm (đọc snapshot `ready`) → đọc hết cursor cần thiết → hiển thị marker/status và chú giải → mở chi tiết tấm |
 | Luồng lỗi | 400 bbox/năm sai: yêu cầu sửa; 401 đăng nhập lại; 404 tấm chưa có ở cutoff; 503 `SNAPSHOT_NOT_READY`: báo đang dựng, thử lại sau; mất mạng chỉ hiển thị cache có nhãn/version |
 | Hậu điều kiện | Chỉ trạng thái/vị trí của snapshot chọn được hiển thị; không cập nhật CSDL vì thao tác xem |
-| Chấp nhận | Đổi năm không nhận response năm cũ; mọi response có `snapshot_run_id`; không lấy candidate/removed làm cảnh báo chỉ vì marker có trên bản đồ |
+| Chấp nhận | Đổi năm không nhận response năm cũ; response bản đồ có `snapshot_run_id`; không lấy candidate/removed làm cảnh báo chỉ vì marker có trên bản đồ |
 
 ### Phát lại chuyến đi và nhận cảnh báo
 
@@ -169,10 +169,10 @@ theo năm). Mục Nên có chỉ bắt đầu khi tiêu chí hoàn thành bên d
 | Dữ liệu | Corpus Mapillary của **một** tuyến demo ~1,5 km, ba năm 2023–2025, manifest có hash; bộ mốc tuyến đó theo [ground-truth.md](contracts/ground-truth.md), ≥20% tấm gán chéo | Chạy đánh giá |
 | AI | YOLOv8n 12 lớp từ dataset công khai, test Hà Nội độc lập; batch toàn ảnh xuất JSONL lượt 1 (seen/unknown, bbox, tư thế camera, `feature_candidates`); gói TFLite + manifest; bài thử B3 | [ai-pipeline.md](ai-pipeline.md), [model.md](contracts/model.md) |
 | Backend + `core` | Login JWT ba role, sign-types; nhập lô; `core`: định vị (giao tia → feature → camera_proxy), hướng mặt, gộp, điểm Beta giảm dần, đủ vòng đời; job snapshot; API bbox, chi tiết/history, trips/trace/ảnh, biển dọc chuyến, `/signs/ahead` (tham chiếu), hàng chờ/chi tiết ca/quyết định | Nạp lô, Xem bản đồ, Xem lịch sử, Duyệt ca |
-| Lượt not_seen | Đủ đường code lượt 2 + kiểm nhìn được. Bật trên dữ liệu thật chỉ khi B3 được giữ; luôn dùng được trong CSDL mô phỏng | [algorithms.md](algorithms.md) |
+| Lượt not_seen | Đủ đường code lượt 2 + kiểm nhìn được. Bật trên dữ liệu thật chỉ khi B3 được giữ; môi trường mô phỏng (CSDL riêng, `scenario_id`, bản params riêng bật `negative_evidence_enabled`) luôn dùng được | [algorithms.md](algorithms.md) |
 | App Android | Đăng nhập; bản đồ Vietmap theo năm; chọn chuyến/năm/xe (xe lưu cục bộ); phát lại trace + ảnh; Map Matching cả vết; lọc cục bộ, banner + TTS, log thời gian; TFLite chạy trên ảnh phát lại để vẽ bbox và đo FPS, **không** gửi observation | Phát lại, Chọn xe, Xem bản đồ |
 | Web admin | Đăng nhập; bản đồ có lọc; hàng chờ; duyệt ca có ảnh trước/sau với confirm/keep/remove/replace/defer; chi tiết + history | Duyệt ca, Xem lịch sử |
-| Thực nghiệm | CLI chạy PB, B0, B1, B2 (B3 nếu giữ) × 3 năm × pre/post; script chấm; mô phỏng 10 biển giả + thay 5 biển; ca thật báo riêng; đánh giá model; đo Android thật theo protocol | Chạy đánh giá, [evaluation.md](evaluation.md) |
+| Thực nghiệm | CLI chạy PB, B0, B1, B2 (B3 nếu giữ; khoảng giữa thì là phân tích phụ) × 3 năm × pre/post; script chấm; mô phỏng 10 biển giả + thay 5 biển; ca thật báo riêng; đánh giá model; đo Android thật theo protocol | Chạy đánh giá, [evaluation.md](evaluation.md) |
 
 Cả ba dấu hiệu mâu thuẫn (a)(b)(c) đều cần not_seen hợp lệ. Nếu B3 bị bỏ, dữ liệu thật
 sẽ không sinh ca NGHI THAY ĐỔI; demo hàng chờ và chỉ số mâu thuẫn khi đó chỉ chạy bằng
@@ -182,6 +182,7 @@ CSDL mô phỏng có nhãn ([ui.md](ui.md), Khung cảnh demo). MVP vẫn đạt
 
 - Re-infer trên app gửi `POST /observations/batch` (trip phiên riêng, giữ creator/time gốc).
 - `POST /admin/reviews` mở ca xác nhận thủ công cho candidate/unclear (API 1.1).
+- `POST /admin/signs` cho admin tạo tấm biển chưa có trong dữ liệu (API 1.0).
 - Tải trước cả chuyến/cache có nhãn version để phát lại khi mất mạng giữa chừng.
 - MinIO thay ổ đĩa cho kho ảnh và manifest.
 
@@ -205,10 +206,10 @@ xóa vật lý sign/history; tuyến thứ hai.
 1. Nạp corpus tuyến demo ba năm từ một manifest → mỗi năm 2023/2024/2025 có `snapshot_run` `ready`.
 2. App phát lại ít nhất một chuyến mỗi năm, nhắc đúng loại xe (P.103a không nhắc motorcycle), có log t_gặp/t_banner/t_TTS.
 3. Test đối chiếu: lọc cục bộ của app và `/signs/ahead` ra cùng danh sách trên cùng trace.
-4. Khung cảnh demo chạy trọn: biển xác nhận 2023 → NGHI THAY ĐỔI → admin replace → app nhắc biển mới; bản đồ 2023 không đổi. Ca thật hoặc mô phỏng có nhãn.
+4. Khung cảnh demo chạy trọn: biển xác nhận 2023 → NGHI THAY ĐỔI → admin replace → app nhắc biển mới; bản đồ 2023 không đổi. Ca thật hoặc mô phỏng có nhãn. Biển thay phải tự đạt confirmed_auto bằng bằng chứng có sẵn (kịch bản mô phỏng cấp đủ N cặp), để demo không phụ thuộc mục Nên có.
 5. CLI + script ra `map-metrics.csv` đủ tổ hợp bậc × năm × pre/post, hoặc lý do not_run; cùng đầu vào cùng hash.
 6. Có `model-metrics.csv` và `device-runs.csv` (≥3 lượt) trên máy Android thật.
-7. Test logic bắt buộc trong [testing.md](testing.md) chạy đạt.
+7. Các test ở mục "Unit test điểm và vòng đời — bắt buộc" và "Bổ sung theo kiến trúc 1.2" của [testing.md](testing.md) chạy đạt.
 
 ## Ngoài phạm vi và giới hạn
 

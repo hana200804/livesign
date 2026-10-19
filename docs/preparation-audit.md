@@ -47,3 +47,21 @@ Không sửa bản đề cương hoặc các README được yêu cầu chỉ đ
 
 Các file này đặc tả việc sẽ triển khai; không phải bằng chứng đã train, đã chạy app,
 đã dựng backend hoặc đã hoàn thành nghiệm thu tuần 1.
+
+## Hình học ứng viên và kiểm tra tài liệu
+
+GeoJSON dùng ba ô rank đầu làm hạt giống, mở rộng qua ô thứ 4/5 để có đường
+ứng viên khoảng 1,5 km. Tọa độ đường lấy từ trích đoạn OpenStreetMap công khai,
+không nối thẳng tâm các ô để giả làm đường. Polyline dài xấp xỉ **1.452,9 m**,
+trong đó chiều dài đường không lặp khoảng **1.370,4 m**; chưa kiểm tra một chiều,
+vết phát lại và ảnh thay đổi. Đây là hình học để nhóm xem xét; trạng thái vẫn candidate.
+File giữ ID way, nguồn tải, hash snapshot, attribution và bbox để truy vết.
+
+Đã kiểm tra: YAML lớp/dataset cùng 12 mã/thứ tự/xe/phiên bản; N/θ vẫn null;
+JSON ví dụ đọc được; 10 mẫu đúng từng dòng nguồn; GeoJSON nằm trong bbox và thống kê
+ô khớp CSV; các liên kết nội bộ tồn tại; cột mẫu có trong SQL, đủ tám bảng và đích FK;
+`docker compose --env-file .env.example config --quiet` hợp lệ khi cấp biến kiểm tra tạm.
+`git diff --check` đạt. Không dùng credential thật trong kiểm tra Compose.
+
+**Chưa kiểm chứng runtime:** chưa tạo bảng SQL do Docker daemon chưa chạy;
+chưa chạy app/SDK/TFLite, train hoặc nhập/gộp dữ liệu. Những mục đó nằm trong tuần 1.

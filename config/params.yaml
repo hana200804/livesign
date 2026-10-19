@@ -1,6 +1,7 @@
 # Nguồn: đề cương v3.3, mục Điểm tin cậy / Đánh giá; phản hồi nhóm 19/10/2026.
 # Đây là cấu hình đặc tả, chưa phải cấu hình mà một ứng dụng đang chạy đã đọc.
 schema_version: "1.0"
+params_version: "prep-2026-10-19"
 status: "dự kiến"
 
 reliability:
@@ -18,6 +19,8 @@ geometry:
   visibility_max_distance_m: {value: 30, unit: m, status: "đã chốt"} # Điều kiện khoảng cách ≤30 m; còn phải đủ góc nhìn, hướng mặt, nét, không che.
   merge_radius_m: {value: 20, unit: m, status: "dự kiến"} # Bán kính gộp ban đầu; khác loại hoặc khác hướng không được gộp chỉ vì gần nhau.
   merge_max_facing_diff_deg: {value: 30, unit: degree, status: "dự kiến"} # Chênh lệch tròn nhỏ nhất giữa hai hướng mặt biển; chưa biết hướng thì không tự gộp theo hướng.
+  ahead_max_bearing_diff_deg: {value: 45, unit: degree, status: "dự kiến"} # Khi nhắc, hướng từ xe tới biển lệch hướng xe tối đa 45°, còn phải khớp đường.
+  ahead_max_facing_diff_deg: {value: 45, unit: degree, status: "dự kiến"} # Hướng mặt biển lệch hướng từ biển về xe tối đa 45°; thiếu hướng thì chưa đủ điều kiện nhắc.
   perspective_frame_keep: {value: 0.85, unit: ratio, status: "dự kiến"} # Giữ vùng giữa 85% nửa góc ngang, bắt nguồn PoC; không thay thế kiểm tra nhìn được.
   default_focal: {value: 0.8, unit: normalized_long_edge, status: "đã chốt"} # Khớp geometry.py; chỉ fallback hình học, không đủ để tạo bằng chứng âm khi thiếu camera.
   warning_min_lead_s: {value: 5, unit: s, status: "đã chốt"} # Mục tiêu đánh giá nhắc kịp của v3.3; khoảng cách ứng viên bằng tốc độ m/s nhân 5.
@@ -31,6 +34,6 @@ evaluation:
   human_audit_images: {value: 60, unit: image, status: "đã chốt"} # Người duyệt ngẫu nhiên 60 ảnh và mọi ảnh model gán nhãn không chắc.
 
 workflow:
-  classes_version: {value: "qcvn12-2026-10-19", status: "dự kiến"} # Khớp classes.yaml; bộ mã được nhóm duyệt, ánh xạ dataset vẫn chưa xác minh.
+  classes_version: {value: "qcvn12-2026-10-19", status: "đã chốt"} # Khớp classes.yaml; bộ mã được nhóm duyệt, ánh xạ dataset vẫn chưa xác minh.
   corridor_status: {value: candidate, status: "đã chốt"} # Nhóm duyệt giữ vùng top 3 là ứng viên, chưa chốt đường demo.
   negative_evidence_enabled: {value: null, status: "dự kiến"} # Chỉ chốt sau bài thử 2048px tuần 1; null không cho tạo not_seen tự động.

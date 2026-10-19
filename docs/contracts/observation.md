@@ -49,6 +49,14 @@ mẫu hiện dùng schema 1.0 và `qcvn12-2026-10-19`.
 Một phiên phát lại giữ nguyên `creator_id`, `captured_at`, `image_id`, `sequence_id`
 của ảnh Mapillary; không biến người phát lại hoặc giờ upload thành bằng chứng mới.
 
+Tên trong các README/PoC cũ là gợi ý/định dạng nguồn. Khi xuất hợp đồng mới:
+`sequence→sequence_id`, `creator→creator_id` (thêm namespace), `captured→captured_at`
+(giữ precision=day), `conf→detector_confidence`, `pano→is_pano`.
+`sign_id` của PoC là `source_sign_id`, **không** phải `target_sign_id`.
+`width/height` cũ không tự đổi sang `image_width_px/image_height_px` vì chưa biết
+kích thước thumbnail; `lat/lon/compass_angle/sign_class` gợi ý trong AI README
+được thay bằng các trường camera/biển và `sign_type_code` đã tách rõ ở hợp đồng này.
+
 ## Góc và tọa độ: khớp geometry.py
 
 Vị trí lấy `computed_geometry`/`computed_compass_angle` nếu có, fallback sang

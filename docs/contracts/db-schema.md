@@ -368,3 +368,74 @@ Không xóa lịch sử cũ để làm lại snapshot cho “đẹp”.
 - Đặc tả image lookup/quyền trong manifest ngoài git; chưa thêm bảng ảnh.
 - Đặc tả provenance observation/history và watermark admin trong JSON đã có.
 - Giữ nguyên enum, FK và ý nghĩa cột 1.0; schema nháp vẫn chưa được chạy trên MySQL.
+
+## Thay đổi 1.2
+
+Thay cho ghi chú 1.1 "snapshot không cần bảng thứ chín": theo [kiến trúc 1.2](../architecture.md),
+snapshot theo năm được **dựng sẵn** sau mỗi lô nhập hoặc quyết định admin, API chỉ đọc.
+Thêm hai bảng; tám bảng 1.0 giữ nguyên. Bảng chỉ chứa bản đồ sản phẩm (đã áp dụng quyết
+định admin); bản trước duyệt cho thực nghiệm do CLI đánh giá xuất CSV, không ghi vào đây.
+
+```sql
+CREATE TABLE snapshot_run (
+  run_id VARCHAR(160) PRIMARY KEY,
+  evaluation_year SMALLINT UNSIGNED NOT NULL,
+  cutoff_exclusive_utc DATETIME(3) NOT NULL,
+  params_version VARCHAR(64) NOT NULL,
+  config_sha256 CHAR(64) NOT NULL,
+  classes_version VARCHAR(64) NOT NULL,
+  data_revision VARCHAR(64) NOT NULL,
+  core_version VARCHAR(64) NOT NULL,
+  status ENUM('building','ready','superseded') NOT NULL DEFAULT 'building',
+  sign_count INT UNSIGNED NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  ready_at DATETIME(3) NULL,
+  INDEX ix_run_lookup (evaluation_year, status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_as_cs;
+
+CREATE TABLE sign_snapshot (
+  run_id VARCHAR(160) NOT NULL,
+  sign_id VARCHAR(160) NOT NULL,
+  sign_type_code VARCHAR(16) NOT NULL,
+  location POINT NOT NULL SRID 4326,
+  location_method ENUM('ray_least_squares','mapillary_feature','camera_proxy') NOT NULL,
+  sign_facing_deg DOUBLE NULL,
+  facing_source ENUM('aggregated','single_view','insufficient') NOT NULL,
+  status ENUM('candidate','confirmed_auto','confirmed_manual','unclear',
+              'suspected_change','removed','replaced') NOT NULL,
+  alpha DECIMAL(18,9) NOT NULL,
+  beta DECIMAL(18,9) NOT NULL,
+  agreement_score DECIMAL(10,9) NOT NULL,
+  positive_pair_count INT UNSIGNED NOT NULL,
+  negative_pair_count INT UNSIGNED NOT NULL,
+  last_seen_at DATETIME(3) NULL,
+  last_evidence_at DATETIME(3) NULL,
+  conflict_reasons JSON NOT NULL,
+  PRIMARY KEY (run_id, sign_id),
+  SPATIAL INDEX sx_snapshot_location (location),
+  INDEX ix_snapshot_status (run_id, status, sign_type_code),
+  CONSTRAINT fk_snapshot_run FOREIGN KEY (run_id) REFERENCES snapshot_run(run_id),
+  CONSTRAINT fk_snapshot_sign FOREIGN KEY (sign_id) REFERENCES sign(sign_id),
+  CONSTRAINT fk_snapshot_type FOREIGN KEY (sign_type_code) REFERENCES sign_type(sign_type_code),
+  CONSTRAINT ck_snapshot_facing CHECK (sign_facing_deg IS NULL OR (sign_facing_deg >= 0 AND sign_facing_deg < 360)),
+  CONSTRAINT ck_snapshot_facing_source CHECK (facing_source <> 'aggregated' OR sign_facing_deg IS NOT NULL),
+  CONSTRAINT ck_snapshot_score CHECK (alpha >= 1 AND beta >= 1 AND agreement_score BETWEEN 0 AND 1),
+  CONSTRAINT ck_snapshot_conflicts CHECK (JSON_TYPE(conflict_reasons) = 'ARRAY')
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_as_cs;
+```
+
+Quy trình dựng: tạo `snapshot_run` trạng thái `building` → job gọi `core` trên observation
+trước cutoff → ghi mọi dòng `sign_snapshot` → trong **một transaction** đổi run mới sang
+`ready` và run `ready` cũ cùng năm sang `superseded`. API chỉ đọc run `ready` mới nhất nên
+không bao giờ thấy bản dựng dở. Run cũ giữ để truy vết; xóa định kỳ là việc vận hành.
+Dựng lại toàn bộ một năm cho tuyến demo đủ nhanh để chạy đồng bộ sau mỗi lô; chỉ khi đo thấy
+chậm mới chuyển sang dựng riêng các sign bị ảnh hưởng.
+
+Truy vấn bbox: `WHERE run_id=? AND MBRContains(ST_GeomFromText(?,4326,'axis-order=long-lat'), location)`
+rồi lọc chính xác như 1.0. `sign` vẫn là cache hiện tại cho admin; nguồn đúng theo năm là `sign_snapshot`.
+
+### Danh sách bổ sung 1.2
+
+- Thêm bảng `snapshot_run` và `sign_snapshot` (có SPATIAL index), thay ghi chú 1.1 về snapshot trong bộ nhớ.
+- Ghi `location_method` và `facing_source` cho từng biển trong snapshot.
+- Chưa có migration thực thi; DDL vẫn cần chạy thử trên MySQL 8.

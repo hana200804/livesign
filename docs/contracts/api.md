@@ -504,3 +504,70 @@ này để dùng được confirmed_manual mà không giả tạo mâu thuẫn.
 - Thêm hash/cutoff/cache cho representation; làm rõ lỗi trace không đủ thời gian.
 - Bổ sung provenance snapshot, version 409, watermark admin và môi trường demo dự kiến.
 - Không sửa nghĩa, tên cột, trạng thái, quyền hoặc endpoint 1.0.
+
+## Thay đổi 1.2
+
+Bổ sung theo [kiến trúc 1.2](../architecture.md): dựng sẵn snapshot và phát lại không gọi
+mạng theo từng điểm. Không đổi tên, quyền hay nghĩa các endpoint 1.0/1.1.
+
+### Đọc từ snapshot dựng sẵn
+
+`GET /signs`, `/signs/ahead`, `/signs/{sign_id}` và `/trips/{trip_id}/signs` đọc lần chạy
+`snapshot_run` mới nhất có `status=ready` của năm được hỏi ([db-schema.md](db-schema.md),
+Thay đổi 1.2); không tính lại điểm khi đọc. Response có thêm `snapshot_run_id`.
+Chưa có lần chạy sẵn sàng cho năm đó → 503 `SNAPSHOT_NOT_READY`, client thử lại sau.
+Bảng này là bản đồ sản phẩm (đã áp dụng quyết định admin); bản trước duyệt cho thực
+nghiệm do CLI đánh giá xuất ra CSV, không qua API.
+
+### Biển dọc chuyến để phát lại
+
+**`GET /trips/{trip_id}/signs?evaluation_year=2025&vehicle_type=car`** — user/importer/admin.
+Trả mọi biển của snapshot nằm trong `replay.corridor_buffer_m` (dự kiến 50 m) quanh trace
+của chuyến, cùng tham số nhắc để app lọc biển phía trước **cục bộ**. Gọi một lần khi bắt đầu.
+
+```json
+{
+  "evaluation_year":2025,
+  "snapshot_run_id":"run-2025-illustration-01",
+  "trip_id":"illustration:trip-01",
+  "vehicle_type":"car",
+  "alert_params":{
+    "params_version":"prep-2026-10-19",
+    "warning_min_lead_s":5,
+    "warning_latency_buffer_s":1.5,
+    "ahead_max_bearing_diff_deg":45,
+    "ahead_max_facing_diff_deg":45,
+    "alert_cooldown_s":15,
+    "alert_rearm_distance_m":80
+  },
+  "items":[{
+    "sign_id":"sign-demo-1",
+    "sign_type_code":"P.131a",
+    "sign_lon":105.84715,
+    "sign_lat":21.02555,
+    "sign_facing_deg":180.0,
+    "facing_source":"aggregated",
+    "location_method":"ray_least_squares",
+    "status":"confirmed_auto",
+    "applies_to_vehicle":true,
+    "alertable":true,
+    "warning_label":null
+  }]
+}
+```
+
+`alertable=false` khi biển thiếu hướng mặt, chỉ có `single_view`, là candidate/removed/
+replaced hoặc không áp dụng cho loại xe — app vẫn vẽ trên bản đồ nhưng không nhắc.
+`warning_label` theo bảng trạng thái 1.0. Không phân trang: một chuyến demo chỉ có vài chục
+đến vài trăm biển; vượt `limit` 500 thì trả 413 để chia chuyến.
+
+App lọc cục bộ đúng luật của `/signs/ahead` (khoảng cách
+`speed × (warning_min_lead_s + warning_latency_buffer_s)`, hai ngưỡng góc, loại xe,
+chống nhắc lặp) với **tham số lấy từ `alert_params`**, không chép số vào code app.
+`/signs/ahead` giữ làm bản tham chiếu: test đối chiếu chạy cùng trace qua cả hai cách.
+
+### Danh sách bổ sung 1.2
+
+- Các endpoint bản đồ đọc `sign_snapshot`; thêm `snapshot_run_id` và lỗi 503 `SNAPSHOT_NOT_READY`.
+- Thêm `GET /trips/{trip_id}/signs` trả biển dọc chuyến + `alert_params` cho lọc cục bộ.
+- Item biển có thêm `location_method`, `facing_source`, `alertable`.

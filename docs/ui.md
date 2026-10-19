@@ -64,7 +64,7 @@ Mục đích: tạo bối cảnh replay nhất quán trước khi phát.
 ```
 
 Gọi GET `/trips?evaluation_year=...`, GET trace Accept JSON để kiểm manifest rồi
-tải NDJSON. Xe được lưu **cục bộ lựa chọn phiên**, gửi vào `/signs/ahead`; chưa có
+tải NDJSON. Xe được lưu **cục bộ lựa chọn phiên**, dùng khi lọc biển dọc chuyến; chưa có
 API ghi vehicle_profile thì không hiện “đã đồng bộ hồ sơ xe lên server”.
 Không dùng biển chọn trên bản đồ làm vị trí xe.
 
@@ -95,8 +95,9 @@ Không dùng biển chọn trên bản đồ làm vị trí xe.
 ```
 
 Dữ liệu: điểm trace gốc, ảnh hiện tại, detection TFLite nếu bật, tọa độ đã map
-match riêng, items ahead. Gọi GET ảnh theo trip/image/year và GET `/signs/ahead`
-với lon/lat/hướng/speed/xe/năm/road_ref; JWT đúng quyền. Detector không trực tiếp
+match riêng, items ahead. Khi bắt đầu gọi một lần `GET /trips/{trip_id}/signs` (biển dọc
+chuyến + `alert_params`) và Map Matching cả vết; trong lúc phát chỉ tải trước ảnh, lọc biển
+phía trước cục bộ (kiến trúc 1.2); JWT đúng quyền. Detector không trực tiếp
 quyết sign.status. Replay thuần không gửi lại bằng chứng đã nhập.
 
 | Trạng thái | Hành động / xử lý |
@@ -287,7 +288,7 @@ quả bằng chứng âm thực tế đã chứng minh.
 | Chọn chuyến | GET /trips |
 | Manifest/trace | GET /trips/{trip_id}/trace, Accept JSON hoặc NDJSON |
 | Ảnh replay | GET /trips/{trip_id}/images/{image_id} |
-| Nhắc theo xe | GET /signs/ahead |
+| Nhắc theo xe | GET /trips/{trip_id}/signs một lần, lọc cục bộ; GET /signs/ahead chỉ để test đối chiếu |
 | Re-infer được bật | POST /observations/batch |
 | Chi tiết/history | GET /signs/{sign_id}; GET /signs/{sign_id}/history |
 | Hàng chờ/detail ca | GET /admin/reviews; GET /admin/reviews/{review_id} |

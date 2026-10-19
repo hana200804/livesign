@@ -63,7 +63,7 @@ flowchart LR
 | --- | --- |
 | Tác nhân | Người lái |
 | Tiền điều kiện | Chuyến có trace timestamp giây/GPS, ảnh/manifest được đọc, loại xe/năm đã chọn; model hợp lệ nếu bật nhận diện |
-| Luồng chính | GET trips/trace → phát theo t gốc → lấy ảnh đúng image_id → Map Matching → GET signs/ahead với vị trí/hướng/speed/xe/năm → lọc chống lặp → banner + TTS, ghi log thời gian |
+| Luồng chính | GET trips/trace → GET biển dọc chuyến (một lần) → Map Matching cả vết (một lần) → phát theo t gốc, tải trước ảnh đúng image_id → lọc biển phía trước cục bộ theo vị trí/hướng/speed/xe → chống lặp → banner + TTS, ghi log thời gian |
 | Luồng lỗi | Trace chỉ ngày/GPS nhảy: ngắt đoạn, không bịa tốc độ; thiếu ảnh: dừng/bỏ frame có log; thiếu map match: unverified; model sai lớp/hash: tắt suy luận và báo lỗi; mất mạng: chỉ cache phù hợp |
 | Hậu điều kiện | Thể hiện đúng nhãn unclear/suspected_change; ảnh và bbox đồng bộ; replay thuần không sinh cặp bằng chứng mới |
 | Chấp nhận | Nhắc trước ≥warning_min_lead_s=5 là chỉ tiêu đo; nếu trễ phải báo trễ, không sửa log. Không nhắc candidate/removed/replaced |

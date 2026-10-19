@@ -57,6 +57,21 @@ lọc first_seen/last_seen để nhận là ảnh chụp đầy đủ quá khứ
 mốc thiếu snapshot; nếu dùng lớp hiện tại chỉ báo phép so tại thời điểm hiện tại,
 không đặt cạnh B0–B3 quá khứ như cùng điều kiện.
 
+## Chạy thực nghiệm
+
+Theo [kiến trúc 1.2](architecture.md), thuật toán chỉ có một bản trong module `core`.
+
+1. **CLI đánh giá** (Java, cùng jar `core`) đọc observation trước cutoff (JDBC chỉ đọc), chạy
+   PB và B0–B3 với cấu hình đã khóa, cho cả trước và sau admin. Mỗi lần chạy xuất
+   `maps-<năm>-<bậc>-<pre|post>.csv`: `sign_id, sign_type_code, lon, lat, sign_facing_deg,
+   facing_source, location_method, status, displayed` kèm manifest (params_version, config hash,
+   core_version, data_revision). Cùng đầu vào phải ra cùng hash file.
+2. **Script chấm Python** đọc các CSV trên + bộ mốc, ghép một–một, tính precision/coverage/
+   bootstrap, xuất các bảng kết quả bên dưới. Script không định vị, gộp hay tính điểm lại.
+
+Không lấy bảng `sign_snapshot` của dịch vụ làm kết quả thực nghiệm: nó chỉ có bản sau duyệt và
+có thể đã được dựng lại bằng dữ liệu nhập muộn.
+
 ## Bộ mốc và các mẫu số
 
 Theo [ground-truth.md](contracts/ground-truth.md), khóa vùng/năm đủ ảnh và danh

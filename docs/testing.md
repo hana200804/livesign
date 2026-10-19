@@ -158,3 +158,12 @@ Không nhận job đã skip vì thiếu project là backend/app đã build đạ
 là gate phải kiểm thứ thật sự tồn tại. CI Android hiện khai Java17, trong khi
 setup.md chọn JDK21: cần thống nhất sau khi chọn Android Gradle Plugin/Gradle,
 không tự đổi checklist hoặc workflow chỉ để làm chúng trông giống nhau.
+
+## Bổ sung theo kiến trúc 1.2
+
+| Test | Nội dung | Đạt khi |
+| --- | --- | --- |
+| Unit `core` | Chạy định vị, hướng mặt, gộp, điểm không cần Spring/MySQL, dùng ví dụ số trong algorithms.md | Ra đúng số tính tay |
+| Đối chiếu nhắc biển | Cùng trace minh họa: app lọc cục bộ từ `GET /trips/{trip_id}/signs` vs gọi `/signs/ahead` từng điểm | Cùng danh sách sign_id ở mọi điểm |
+| CLI lặp lại được | Chạy CLI hai lần trên cùng dữ liệu và cấu hình | Hash các file maps CSV giống nhau |
+| Dựng snapshot | Dựng một run khi API đang đọc | API chỉ thấy run `ready`; đổi run trong một transaction |

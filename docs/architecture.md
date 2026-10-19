@@ -3,6 +3,17 @@
 Thiết kế 1.1; chưa dựng project/dịch vụ. Nguồn API/CSDL/lớp/đơn vị ở
 [contracts](contracts/api.md), thuật toán ở [algorithms.md](algorithms.md).
 Một backend Spring Boot chia module; Python chạy batch/notebook, không là dịch vụ online.
+Thuật toán lõi (định vị, hướng mặt, gộp, điểm tin cậy, vòng đời) viết **một lần** trong
+module Java `core` không phụ thuộc Spring; dịch vụ và công cụ đánh giá cùng gọi module này.
+
+## Bốn quyết định kiến trúc (1.2, chốt 19/10)
+
+| Quyết định | Vì sao |
+| --- | --- |
+| **Một module `core` cho thuật toán + CLI đánh giá** dùng chung | Thang PB, B0–B3 phải chạy lại nhiều lần với tham số khác nhau. Viết thuật toán hai lần (Java cho dịch vụ, Python cho đánh giá) thì kết quả trong quyển có thể khác app. CLI xuất bản đồ ra CSV; script Python chỉ khớp bộ mốc và tính chỉ số |
+| **Dựng sẵn snapshot theo năm** vào bảng `sign_snapshot` | Mọi API đều theo `evaluation_year`. Tính lại trong bộ nhớ ở mỗi request thì chậm và khó kiểm. Dựng sau mỗi lô nhập hoặc quyết định admin; API chỉ đọc |
+| **Phát lại không gọi mạng theo từng điểm** | Tải biển dọc chuyến một lần (`GET /trips/{trip_id}/signs`), Map Matching cả vết một lần, app tự lọc biển phía trước cục bộ. Bớt độ trễ khi nhắc, bớt quota Vietmap, chạy được khi mạng chập chờn. `/signs/ahead` giữ làm bản tham chiếu để test đối chiếu |
+| **Định vị nằm trong `core`, sau khi gom lần thấy** | Một ảnh không giao tia được. Batch AI chỉ gửi tư thế camera, bbox và feature Mapillary ứng viên; `core` gom các lần thấy cùng tấm rồi mới định vị, ước lượng hướng mặt và gộp |
 
 ## Thành phần và hợp đồng nối
 
@@ -10,51 +21,67 @@ Một backend Spring Boot chia module; Python chạy batch/notebook, không là 
 flowchart TB
   Mapillary["Mapillary Graph API"]
   Public["Dataset công khai"]
-  AI["Python và Ultralytics<br/>Máy cá nhân hoặc Colab"]
+  AI["Python batch: nhận diện, bbox toàn ảnh<br/>Máy cá nhân hoặc Colab"]
   Store["Kho ảnh và manifest ngoài git<br/>Ổ đĩa; MinIO tùy chọn"]
   DB["MySQL 8<br/>POINT SRID 4326 và SPATIAL"]
+  GT["Bộ mốc CSV"]
   subgraph Backend["Spring Boot một khối"]
     Ingest["Nhập lần thấy"]
-    Merge["Gộp tấm biển"]
-    Trust["Điểm tin cậy và vòng đời"]
-    Query["API bản đồ và nhắc biển"]
+    Snap["Job dựng snapshot theo năm"]
+    Query["API bản đồ, chuyến, nhắc biển"]
     Admin["Admin và auth JWT"]
   end
-  App["Android Kotlin<br/>Vietmap, TFLite, TTS"]
+  subgraph Core["Module core: Java thuần, không Spring"]
+    Pos["Định vị: giao tia, feature<br/>Hướng mặt"]
+    Merge["Gộp tấm biển"]
+    Trust["Điểm tin cậy và vòng đời"]
+  end
+  Eval["CLI đánh giá<br/>xuất bản đồ PB, B0–B3"]
+  Score["Script Python chấm điểm<br/>khớp mốc, chỉ số"]
+  App["Android Kotlin<br/>TFLite, TTS"]
   Vietmap["Vietmap SDK và Map Matching"]
   Web["Web admin React và Leaflet"]
   Mapillary -->|"HTTPS JSON metadata và ảnh"| AI
   Public -->|"Dataset và annotation"| AI
-  AI -->|"JSONL qua HTTPS POST /observations/batch"| Ingest
+  AI -->|"JSONL qua POST /observations/batch"| Ingest
   AI -->|"Ảnh, trace, model, manifest có hash"| Store
-  Ingest --> Merge --> Trust
   Ingest -->|"JDBC, transaction"| DB
-  Merge -->|"JDBC, truy vấn không gian"| DB
-  Trust -->|"JDBC, history và review"| DB
-  Query -->|"JDBC, snapshot theo năm"| DB
+  Ingest -->|"Sau mỗi lô"| Snap
+  Admin -->|"Sau mỗi quyết định"| Snap
+  Snap --> Pos --> Merge --> Trust
+  Snap -->|"Ghi sign, history, review, sign_snapshot"| DB
+  Query -->|"Chỉ đọc sign_snapshot"| DB
   Admin -->|"JDBC, bcrypt và quyết định"| DB
-  Query -->|"Đọc trace và ảnh được cấp quyền"| Store
+  Query -->|"Trace và ảnh được cấp quyền"| Store
   Admin -->|"Đọc evidence_ref"| Store
-  App <-->|"HTTPS JSON, JWT; ảnh và NDJSON"| Query
-  App -->|"HTTPS POST observation và login"| Ingest
-  App <-->|"SDK và API map matching"| Vietmap
+  Eval -->|"Gọi cùng thuật toán"| Pos
+  Eval -->|"Đọc observation, chỉ đọc"| DB
+  Eval -->|"CSV bản đồ theo bậc và năm"| Score
+  GT --> Score
+  App <-->|"Một lần mỗi chuyến: trace, biển dọc chuyến; ảnh tải trước"| Query
+  App -->|"POST observation và login"| Ingest
+  App <-->|"Map Matching cả vết, một lần"| Vietmap
   Web <-->|"HTTPS JSON, JWT; ảnh bằng chứng"| Admin
   Web -->|"GET /signs và history"| Query
   Store -->|"Gói TFLite và labels đã kiểm hash"| App
 ```
 
-Mũi tên Ingest tới auth là kiểm quyền nội bộ trước xử lý; app/login được phục vụ bởi
+Ingest kiểm quyền nội bộ trước xử lý; app/login được phục vụ bởi
 module Admin/auth qua cùng base path `/api/v1`, không phải dịch vụ thứ hai.
 Ảnh trong kho không công khai trực tiếp cả thư mục; API kiểm trip/sign/cutoff/role.
 Gói model copy cục bộ có manifest, chưa thiết kế endpoint phát hành model tự động.
 
 | Module | Trách nhiệm | Không nhận thêm trách nhiệm |
 | --- | --- | --- |
-| Nhập | Validate envelope/dòng, idempotency hash, trip, lưu bền | Không tự coi upload là bằng chứng mới |
-| Gộp | Liên kết observation→tấm, registry ổn định, nhiều tấm chung cột | Không quyết gỡ/thay |
-| Tin cậy | Cặp người/năm, score/độ mới/mâu thuẫn, history và ca pending | Không dùng confidence detector làm score |
-| API bản đồ | Bbox, ahead, trip/ảnh/trace, sign/history theo snapshot | Không lấy cache hiện tại cho mọi năm |
-| Admin/auth | bcrypt, JWT/role, quyết định có version, bằng chứng | Không xóa observation/history để bác mâu thuẫn |
+| Nhập | Validate envelope/dòng, idempotency hash, trip, lưu bền; gọi job snapshot | Không tự gộp, không tự coi upload là bằng chứng mới |
+| Job snapshot | Với mỗi evaluation_year: gọi `core`, ghi sign/history/review hiện tại và một lần chạy `sign_snapshot` | Không phục vụ request đọc |
+| core: Định vị | Gom lần thấy cùng tấm → giao tia → feature Mapillary → camera_proxy; ước lượng hướng mặt | Không gọi CSDL hay HTTP; nhận dữ liệu, trả kết quả |
+| core: Gộp | Liên kết observation→tấm, registry ổn định, nhiều tấm chung cột | Không quyết gỡ/thay |
+| core: Tin cậy | Cặp người/năm, score/độ mới/mâu thuẫn, trạng thái | Không dùng confidence detector làm score |
+| API bản đồ | Bbox, biển dọc chuyến, ahead, trip/ảnh/trace, sign/history — đọc `sign_snapshot` | Không tính lại điểm khi đọc |
+| Admin/auth | bcrypt, JWT/role, quyết định có version, bằng chứng; gọi job snapshot | Không xóa observation/history để bác mâu thuẫn |
+| CLI đánh giá | Chạy `core` trên observation trước cutoff với từng bậc/tham số, xuất CSV bản đồ | Không ghi vào CSDL dịch vụ |
+| Script chấm (Python) | Khớp một–một với bộ mốc, precision/coverage/bootstrap, bảng cho quyển | Không định vị, gộp hay tính điểm lại |
 
 ## Nạp Mapillary đến bản đồ
 
@@ -64,28 +91,30 @@ sequenceDiagram
   participant AI as Batch AI
   participant Files as Kho dữ liệu
   participant API as Spring nhập
-  participant Logic as Gộp và tin cậy
+  participant Job as Job snapshot và core
   participant DB as MySQL
-  AI->>Source: HTTPS metadata và ảnh theo sequence
-  Source-->>AI: GPS, heading, timestamp, creator, ảnh
-  AI->>AI: Nhận diện, bbox toàn ảnh, visibility độc lập
+  AI->>Source: HTTPS metadata, ảnh, feature theo sequence
+  Source-->>AI: GPS, heading, timestamp, creator, ảnh, feature
+  AI->>AI: Nhận diện, bbox toàn ảnh, feature ứng viên gần tia
   AI->>Files: Ghi ảnh, trace và manifest có hash
-  AI->>AI: Xuất JSONL theo observation.md
-  AI->>API: POST /observations/batch và JWT
-  API->>API: Kiểm role, lớp, schema và payload hash
-  API->>DB: Tạo hoặc kiểm trip, ghi dòng hợp lệ
-  API->>Logic: Gán target cho seen và tập sign bị ảnh hưởng
-  Logic->>DB: Gộp, dựng cặp trước cutoff, tính lại
-  Logic->>DB: Ghi sign, history và một review pending mỗi sign
-  DB-->>API: Hoàn tất các transaction được chấp nhận
+  AI->>API: Lượt 1: POST /observations/batch chỉ seen và unknown
+  API->>DB: Kiểm role, lớp, schema, hash rồi ghi dòng hợp lệ
+  API->>Job: Báo tập sign bị ảnh hưởng
+  Job->>DB: Đọc lần thấy trước cutoff
+  Job->>Job: core: gom, định vị, hướng mặt, gộp, điểm, trạng thái
+  Job->>DB: Ghi sign, history, review và sign_snapshot mỗi năm
   API-->>AI: 200 counts và kết quả từng observation
+  AI->>API: GET /signs theo năm: vị trí và hướng mặt đã dựng
+  AI->>AI: Kiểm nhìn được với từng biển đã biết
+  AI->>API: Lượt 2: POST not_seen đủ điều kiện, nếu đã bật
+  API->>Job: Dựng lại snapshot các sign bị ảnh hưởng
 ```
 
-Lô 1.0 là đồng bộ, chưa hứa job queue. Nếu envelope sai từ chối cả lô; dòng sai
-trả rejected, dòng hợp lệ lưu; count phản ánh số đã ghi thật. Xử lý từng dòng/sign
-có transaction và khóa ổn định; lỗi hệ thống giữa chừng client retry cùng ID/hash,
-không coi mọi dòng đã thành công nếu chưa nhận kết quả. Khi một quyết định admin
-xảy ra đồng thời, optimistic lock/version ngăn ghi đè.
+Hai lượt là bắt buộc: not_seen cần vị trí và hướng mặt của biển, mà các giá trị này chỉ
+có sau khi `core` gom các seen. Lô 1.0 là đồng bộ, chưa hứa job queue; ở quy mô một
+tuyến demo, job snapshot chạy ngay sau lô. Nếu envelope sai từ chối cả lô; dòng sai trả
+rejected, dòng hợp lệ lưu. Lỗi hệ thống giữa chừng: client retry cùng ID/hash. Quyết
+định admin đồng thời được chặn bằng optimistic lock/version.
 
 ## Phát lại đến cảnh báo
 
@@ -99,18 +128,22 @@ sequenceDiagram
   Driver->>App: Chọn chuyến, năm, loại xe và phát
   App->>API: GET /trips và trace theo evaluation_year
   API-->>App: Manifest và NDJSON trước cutoff
+  App->>API: GET /trips/{trip_id}/signs, một lần
+  API-->>App: Biển dọc chuyến từ sign_snapshot và tham số nhắc
+  App->>VM: Map Matching cả vết, một lần, chia đoạn nếu dài
+  VM-->>App: Điểm khớp và thông tin đường nếu có
   loop Mỗi điểm hợp lệ của replay
-    App->>API: GET ảnh theo trip và image_id
-    API-->>App: Bytes ảnh hoặc lỗi có lý do
-    App->>VM: Map Matching vết có timestamp
-    VM-->>App: Điểm khớp và thông tin đường nếu có
-    App->>App: Giữ GPS gốc, tính trạng thái phiên và speed_mps
-    App->>API: GET /signs/ahead, hướng, xe, năm, road_ref
-    API-->>App: Items, nhãn trạng thái, lead_time_s
-    App->>App: Bỏ response cũ và chống nhắc lặp
-    App->>TTS: Đọc biển mới trong lần tiếp cận
+    App->>API: Tải trước ảnh vài frame tới
+    App->>App: Lọc biển phía trước cục bộ, cùng luật /signs/ahead
+    App->>App: Chống nhắc lặp theo lần tiếp cận
+    App->>TTS: Đọc biển mới
   end
 ```
+
+Vòng lặp từng điểm không gọi API nhắc biển, nên độ trễ khi nhắc chủ yếu còn TTS và
+khoảng cách giữa hai điểm GPS. App dùng tham số nhắc trả kèm response (không tự chép
+số vào code). `/signs/ahead` vẫn giữ làm bản tham chiếu: test đối chiếu chạy cùng một
+trace qua cả hai cách và yêu cầu ra cùng danh sách biển.
 
 Map matching trả thông tin nào phải kiểm SDK/gói thực tế; chưa có bằng chứng có
 cùng ID đường với CSDL. Không đoán road_ref từ tên phố. GPS nhảy/hướng thiếu/
@@ -184,14 +217,16 @@ xuất phải nhóm chốt như [algorithms.md](algorithms.md).
 ```mermaid
 flowchart LR
   subgraph Dev["Máy chuẩn bị AI"]
-    Local["Python 3.12 và Node từ 18"]
+    Local["Python 3.12 và Node từ 18<br/>Batch AI, script chấm"]
     Colab["Colab notebook và GPU được cấp"]
   end
   subgraph Server["Máy chạy dịch vụ demo"]
     Spring["JDK 21, Spring Boot và Web build"]
+    EvalCli["CLI đánh giá, cùng jar core"]
     Mysql["Docker Compose: mysql:8.0"]
     Disk["Ổ đĩa ảnh và manifest"]
     Spring -->|"JDBC qua localhost, tài khoản ứng dụng"| Mysql
+    EvalCli -->|"JDBC chỉ đọc"| Mysql
     Spring -->|"Đường dẫn ref đã kiểm quyền"| Disk
   end
   Phone["Android thật, SDK từ 26"]

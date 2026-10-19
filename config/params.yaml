@@ -47,6 +47,10 @@ positioning:
   max_ray_residual_m: {value: 5, unit: m, status: "dự kiến"} # Ngưỡng phần dư vuông góc để thử lọc tia sai, không phải cam kết sai số tọa độ.
   bbox_physical_height_m: {value: null, unit: m, status: "dự kiến"} # Kích thước biển thật chưa biết nên chưa được suy khoảng cách tuyệt đối từ bbox.
 
+facing:
+  min_views: {value: 2, unit: observation, status: "dự kiến"} # Số tia seen tối thiểu để ước lượng hướng mặt; một tia chỉ là single_view, chưa dùng cho not_seen hay nhắc.
+  min_resultant_length: {value: 0.5, unit: ratio, status: "dự kiến"} # Độ tập trung R của các hướng ngược tia; thấp hơn thì nghi hai tấm hoặc sai liên kết, cần đo.
+
 visibility:
   max_facing_diff_deg: {value: 45, unit: degree, status: "dự kiến"} # So hướng mặt với bearing từ biển về camera; khác với hướng xe tới biển.
   sharp_laplacian_min: {value: null, status: "dự kiến"} # Ngưỡng nét trên ROI cùng kích thước/chuẩn ảnh, cần đo trước khi tự tạo bằng chứng âm.

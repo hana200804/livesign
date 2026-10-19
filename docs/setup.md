@@ -11,7 +11,7 @@ Chạy từ gốc repo trong PowerShell; mỗi người tự đánh dấu sau kh
 | Sẵn sàng | Mục | Kiểm tra và kết quả cần thấy |
 | --- | --- | --- |
 | [ ] | Git | `git --version`; `git status --short --branch` không có bí mật/dữ liệu lớn |
-| [ ] | JDK **21** | `java -version`; `javac -version` đều báo 21; Android Studio chọn Gradle JDK 21 khi cấu hình project |
+| [ ] | JDK **21** | `java -version`; `javac -version` đều báo 21 (cho backend). Android dùng Gradle JDK **17** đi kèm Android Studio, khớp job Android trong CI |
 | [ ] | Node **≥18** | `node --version`; `node -e "if(+process.versions.node.split('.')[0]<18)process.exit(1)"` trả mã 0 |
 | [ ] | Python **3.12** | `py -3.12 --version`; `py -3.12 -m venv .venv`; `.\.venv\Scripts\python.exe --version` báo 3.12.x |
 | [ ] | Android Studio | Mở Help → About, ghi phiên bản vào biên bản nhóm; `Get-Item 'C:\Program Files\Android\Android Studio\bin\studio64.exe'` xác nhận đường dẫn mặc định (đổi sang nơi đã cài nếu khác) |

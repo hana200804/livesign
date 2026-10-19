@@ -37,6 +37,12 @@ Lý do: giao tia có thể kiểm tra phần dư; feature có sẵn; bbox không
 Đây là mở rộng định vị. **Phép so B0–B3 chính giữ cùng vị trí camera + gộp 20 m**,
 không đổi định vị/hướng giữa các bậc rồi gán mọi cải thiện cho điểm tin cậy.
 
+> **Mâu thuẫn cần nhóm quyết trước khi chấm (review 19/10):** camera thường cách biển
+> 5–35 m (PoC Trần Phú), trong khi khớp mốc dùng `ground_truth.match_radius_m=5`.
+> Nếu B0–B3 lấy vị trí camera thì phần lớn biển dự đoán không khớp được mốc, độ chính
+> xác và độ phủ của cả bốn bậc đều thấp vì định vị chứ không vì độ tin cậy.
+> Xem dòng "Định vị cho thang B0–B3" trong [decisions.md](decisions.md).
+
 ### Giao tia: công thức và pseudocode
 
 Đầu vào: tập cùng tấm/loại `seen` đã kiểm tra, bbox trên đúng ảnh đã khai kích thước,
@@ -94,6 +100,43 @@ sai số chỉ cho mốc đủ tin cậy, kèm độ bất định mốc. Sai he
 ngang khoảng `30×tan(3°)=1,57 m`, chưa gồm GPS và liên kết sai; vì thế chưa thể hứa 2–3 m.
 Ảnh dùng focal fallback, camera nhảy, pano không đúng hình chiếu, tia quá gần nhau,
 khác tấm cùng loại, hoặc mốc không chắc → giữ lý do thiếu dữ liệu; không ép một tọa độ đẹp.
+
+## Ước lượng hướng mặt biển
+
+Gộp, khớp mốc, kiểm tra nhìn được và `/signs/ahead` đều cần `sign_facing_deg`,
+nhưng không nguồn nào trả sẵn: TFLite không có, feature Mapillary không có hướng.
+Phải ước lượng từ các tia nhìn của lần thấy dương. Lý do dùng được: mặt sau biển
+không có hình nên detector chỉ nhận ra loại khi camera ở **nửa mặt phẳng phía trước**.
+
+Với mỗi seen i của cùng tấm, `ψ_i` là hướng tia camera → biển như mục giao tia.
+Hướng mặt ước lượng là trung bình tròn của các hướng ngược tia:
+`v_i=(sin(ψ_i+180°), cos(ψ_i+180°))`, `m=Σv_i/n`, `facing=atan2(m_x,m_y)` đổi về [0,360),
+độ tập trung `R=|m|` trong [0,1].
+
+```text
+LẤY seen trước cutoff đã gán cùng tấm, có camera_heading_deg + bbox + thông số ảnh
+NẾU số tia < facing.min_views: facing=null, facing_source=insufficient
+TÍNH ψ_i, v_i, m, R
+NẾU R < facing.min_resultant_length: facing=null (tia trái chiều → nghi hai tấm/sai liên kết)
+NGƯỢC LẠI: facing=atan2(m_x,m_y), lưu R, số tia và ảnh dùng trong provenance
+```
+
+Ví dụ dùng lại hai camera ở mục giao tia: ψ=45° và 315° → hướng ngược 225° và 135°;
+`m=(0, −0,707)` → facing=180° (biển ở (5,5) quay mặt về phía Nam, nơi hai camera đứng),
+R=0,707. Nhìn lệch ±45° là bình thường nên R không cần gần 1.
+
+Hệ quả cho các thuật toán khác:
+- **Gộp một lần thấy vào sign đã có**: không so hướng ước lượng từ một ảnh (một ảnh nhìn
+  xiên có thể lệch tới ~45°), mà kiểm tra camera nằm phía trước biển:
+  `angle_diff(sign.facing, bearing(sign→camera)) ≤ visibility.max_facing_diff_deg`.
+  `merge_max_facing_diff_deg` chỉ dùng khi so **hai sign** đều đã có facing tổng hợp.
+- Sign mới chỉ có một tia: tạm `facing=ψ+180°`, `facing_source=single_view`; không dùng để
+  tạo not_seen hay nhắc cho tới khi đủ `facing.min_views`.
+- B0 theo cách làm phổ biến gộp theo loại + 20 m, **không xét hướng**.
+
+**Cần nhóm quyết:** dùng ước lượng trên; `facing.min_views=2`, `min_resultant_length=0,5`
+là dự kiến, cần đo trên bộ mốc phát triển. Nếu không chấp nhận, phải chọn nguồn hướng
+khác, vì khi facing luôn null thì không gộp tự động, không khớp mốc theo hướng và app không nhắc.
 
 ## Gộp biển và giữ sign_id
 
@@ -161,6 +204,7 @@ Distance địa lý camera–biển dùng mét; 30 m chấp nhận, 30,01 m khô
 NẾU có detection đúng tấm/loại và metadata hợp lệ: TRẢ seen
 TÍNH distance và các cờ nhìn được, giữ null khi không kiểm tra được
 NẾU target/loại/camera/focal/ảnh bằng chứng thiếu: TRẢ unknown
+NẾU vị trí sign là camera_proxy hoặc facing null/single_view: TRẢ unknown
 NẾU distance > 30 hoặc có cờ false/null: TRẢ unknown
 NẾU kiểm tra âm chưa được duyệt hoặc negative_evidence_enabled khác true:
   BỘ SINH TRẢ unknown; API từ chối nếu client vẫn gửi not_seen (422)

@@ -30,6 +30,10 @@ N/θ/θ_thấp còn null: đánh dấu bậc phụ thuộc là not_run, không t
 | B2 | B1 và tuổi cặp dương gần nhất ≤H; biển cũ hơn bị loại khi chấm |
 | B3 | B2 và không ở suspected_change theo điểm giảm dần và dấu hiệu (a)(b)(c); cần bài thử âm cho phép |
 
+> **Chưa thống nhất (review 19/10):** dòng B0 ghi "vị trí camera" nhưng khớp mốc dùng
+> bán kính 5 m; camera thường cách biển 5–35 m nên gần như không khớp được. Phải chọn
+> một trong hai cách ở [decisions.md](decisions.md), dòng "Định vị cho thang B0–B3", trước khi chấm.
+
 Giữ nguyên detector, source corpus, tọa độ và luật gộp ở cả bốn bậc khi muốn quy
 cải thiện cho độ đa dạng/độ mới/mâu thuẫn. Gộp có hướng, giao tia hoặc feature
 Mapillary là các phép so thêm riêng. Không thay detector/định vị đồng thời lúc

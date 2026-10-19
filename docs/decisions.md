@@ -29,6 +29,9 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 
 | Quyết định | Đề xuất / dữ liệu cần có | Hạn dự kiến |
 | --- | --- | --- |
+| **Định vị cho thang B0–B3** (review 19/10, chặn chấm điểm) | Hiện B0–B3 dùng vị trí camera, mà camera cách biển 5–35 m, còn khớp mốc dùng 5 m → gần như không khớp được. **Cách A (đề xuất):** B0–B3 dùng chung một cách định vị tốt hơn (giao tia → feature Mapillary; camera_proxy không được khớp mốc, tính là thiếu ở độ phủ), thêm một dòng riêng "cách làm phổ biến" (vị trí ảnh + gộp 20 m) để thấy tác dụng của định vị. Thang vẫn công bằng vì cả bốn bậc cùng định vị. Cần sửa chú thích B0 đang "đã chốt" trong params. **Cách B:** giữ vị trí camera cho mọi bậc, khớp sự tồn tại với bán kính ≥ 35 m, đo sai số vị trí riêng; dễ ghép nhầm khi nhiều biển cùng loại đứng gần nhau | Trước khi gán bộ mốc |
+| **Ước lượng hướng mặt biển** (review 19/10) | Trước đây không có thuật toán nào sinh `sign_facing_deg`, trong khi gộp, khớp mốc, not_seen và nhắc đều cần. Đề xuất trong [algorithms.md](algorithms.md): trung bình tròn hướng ngược tia, `facing.min_views=2`, `min_resultant_length=0,5` dự kiến | Trước code phần gộp |
+| **Đệm độ trễ khi nhắc** (review 19/10) | `D = speed × 5 s` không chừa thời gian cho API, Map Matching, TTS → nhắc thường dưới 5 s. Đề xuất thêm `warning_latency_buffer_s` (khoảng 1–2 s, cần đo) và đổi thành `D = speed × (5 + đệm)`; đây là đổi hợp đồng API nên cần nhóm đồng ý | Trước code `/signs/ahead` |
 | Tuyến demo cụ thể ~1,5 km | Xem GeoJSON ứng viên; kiểm tra chuỗi ảnh đi theo đường thật, hai hướng có ảnh khi có thể; xem ảnh thay đổi, không lấy centroid làm tim đường | 25/10 |
 | N, θ và θ_thấp | Ứng viên 3 / 0,75 / 0,40; đo phân bố cặp và precision/coverage trước mốc test; N=1 chỉ là fallback cần nhóm duyệt lại | 25/10, trước triển khai tự xác nhận |
 | H, K, hệ số giảm | Giá trị thử H=2 năm, K=2 cặp, base=0,5; xác nhận trên dữ liệu phát triển, không tune trên tập chấm | Trước khóa thí nghiệm |

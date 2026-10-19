@@ -49,6 +49,8 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Ưu tiên trạng thái | **Cần nhóm quyết:** mâu thuẫn trước cũ; giữ nguồn xác nhận khi phục hồi; θ chỉ để vào xác nhận, θ_thấp để nghi; candidate có thể nghi khi đủ chứng cứ | Trước viết vòng đời |
 | Kiểm tra âm tự động | **Cần nhóm quyết:** chỉ âm khi kiểm tra độc lập đã audit; ngưỡng nét/che cần đo, thiếu kiểm tra trả unknown để tránh âm giả | Trước bật B3 |
 | Chống nhắc và liên kết đường | **Cần nhóm quyết:** chống lặp theo lần tiếp cận (15 s/80 m dự kiến), thống nhất road_ref Vietmap–CSDL; giữ D=v×5 s và đo hạn chế trễ trước khi xin thêm đệm | Trước viết cảnh báo |
+| Gói model cho app | **Cần nhóm quyết:** thử input 640 + float16 weights trước, đối chiếu 416/int8 bằng số đo và parity; tensor thực/exporter version phải có manifest để tránh giải mã nhầm | Trước bàn giao model |
+| NMS model | **Cần nhóm quyết:** NMS theo lớp ở client với confidence 0,25/IoU 0,45 dự kiến, khóa bằng tập phát triển, giữ nhiều loại cùng cột | Trước đóng model manifest |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

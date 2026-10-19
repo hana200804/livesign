@@ -145,3 +145,56 @@ Nếu chỉ có ngày, MySQL lưu `captured_at` ở 00:00:00 UTC với precision
 **quy ước lưu**, không khẳng định giờ chụp thật. Khi xuất lại, trả `YYYY-MM-DD`.
 Mốc đánh giá đề xuất dùng năm UTC. Trường hợp nằm sát biên năm mà nguồn chưa rõ múi giờ
 phải giữ ngoài tập chấm cho đến khi đối chiếu timestamp gốc.
+
+## Thay đổi 1.1
+
+Chỉ bổ sung provenance trong `source_metadata`, không thêm/đổi tên cột, outcome
+hay quy tắc điểm 1.0. File JSONL PoC mẫu giữ nguyên; `schema_version=1.0` của payload
+cũ vẫn hợp lệ. Số 1.1 là phiên bản tài liệu, không tự ép client đổi schema payload.
+
+### Metadata tùy chọn dùng chung
+
+| Nhánh object | Trường đề xuất | Dùng để |
+| --- | --- | --- |
+| `source_metadata.positioning` | method, source_sign_id, support_image_ids, ray_residual_m, ray_condition_number, fallback_reason | Truy vết vị trí, không biến feature Mapillary thành mốc chuẩn |
+| `source_metadata.inference` | model_manifest_sha256, input_size_px, box_units, tile_origin_px, full_image_size_px, confidence_min, nms_iou | Kiểm tọa độ ảnh và parity batch/app |
+| `source_metadata.provenance` | data_revision, original_captured_at, geometry_source, heading_source, visibility_audit_ref | Phân biệt dữ liệu gốc/dẫn xuất và nguồn kiểm tra nhìn được |
+
+method dự kiến: `ray_least_squares`, `mapillary_feature`, `bbox_range`,
+`camera_proxy`; đây là enum **provenance**, không phải status/outcome mới.
+Ví dụ minh họa, không phải dòng mẫu PoC đã xác minh:
+
+```json
+{
+  "positioning":{"method":"ray_least_squares","support_image_ids":["illustration:cam-1","illustration:cam-2"],"ray_residual_m":0.0,"ray_condition_number":1.0,"fallback_reason":null},
+  "inference":{"model_manifest_sha256":"<hash manifest>","input_size_px":640,"box_units":"full_image_pixels_xyxy","tile_origin_px":[0,0],"full_image_size_px":[2048,1152],"confidence_min":0.25,"nms_iou":0.45},
+  "provenance":{"data_revision":"illustration-r001","geometry_source":"computed_geometry","heading_source":"computed_compass_angle","visibility_audit_ref":null}
+}
+```
+
+Toàn object trên là giá trị source_metadata. Bbox output của graph TFLite có thể
+normalized nhưng **bbox_px cấp trên luôn pixel toàn ảnh**; phải unpad/unscale và
+cộng offset tile trước. Không đưa bbox normalized vào box_angle().
+
+### Quan sát phát lại và ảnh bằng chứng
+
+- Replay thuần giữ nguyên dữ liệu và không sinh lượt độc lập mới. Re-infer Android
+  dùng trip phiên riêng/source android_replay, model_version khai thật, nhưng creator,
+  captured_at và sequence/image gốc không đổi. Không sửa source dưới cùng observation_id
+  rồi mong API coi là duplicate; payload khác phải bị xung đột đúng hợp đồng.
+- `evidence_ref` cho seen có thể là crop tấm biển; not_seen cần ảnh/ROI khu vực kỳ
+  vọng và kiểm tra độc lập, không tạo crop một tấm mà detector không thấy.
+  Manifest trip giữ ảnh toàn khung/camera gốc để admin và phép tính geometry kiểm lại.
+- Nếu model đọc ảnh kiểm visibility khác model YOLO đang đo, lưu version/audit ref
+  riêng trong provenance; detector_confidence không chứa confidence model gán visibility.
+- Thiếu heading camera gốc nhưng có bearing từ GPS: không tự thay camera_heading_deg
+  bằng bearing để tạo not_seen. Thiếu focal dùng fallback chỉ phục vụ gợi ý hình học.
+- Kích thước source_metadata.raw của PoC không thay image_width_px cấp trên; không
+  sửa file mẫu cũ để thêm GPS/hướng/bbox “đẹp” chưa có trong nguồn.
+
+### Danh sách bổ sung 1.1
+
+- Bổ sung các nhánh provenance/positioning/inference tùy chọn trong JSON có sẵn.
+- Làm rõ đổi tọa độ tensor/tile về bbox pixel toàn ảnh, không đổi quy ước góc.
+- Liên kết hợp đồng model/trace và cách tránh tăng bằng chứng do replay.
+- Giữ nguyên 10 dòng mẫu và mọi điều kiện seen/not_seen/unknown 1.0.

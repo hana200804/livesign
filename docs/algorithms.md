@@ -52,6 +52,8 @@ Với camera `p_i=(x_i,y_i)`, tính
 `A=ΣP_i`, `b=ΣP_i p_i`. Đây là bình phương khoảng cách vuông góc tới các đường tia;
 kiểm tra λ sau khi giải để loại giao phía sau camera. Không gán trọng số confidence
 thành độ chính xác GPS khi chưa hiệu chuẩn.
+Góc giao để sàng hai đường là `min(angle_diff(ψ1,ψ2),180−angle_diff(ψ1,ψ2))`;
+hai hướng gần đối nhau cũng suy biến như gần song song, không coi 180° là góc giao tốt.
 
 ```text
 LẤY các seen trước cutoff, cùng tấm, có camera/bbox/thông số hợp lệ
@@ -225,6 +227,14 @@ quan sát cũ. Cùng ảnh có cả loại cũ/mới → hai tấm, chặn (c). 
 loại cũ nhưng visibility chưa đủ thì chưa có chứng cứ thay loại.
 Khi chưa duyệt âm, (a)/(b) không được dựng bằng not_seen giả; (c) cũng cần phần vắng
 loại cũ hợp lệ. B3 chưa được bật chỉ vì đã cài công thức.
+
+Admin confirm/keep có thể bác một ca mà các cặp âm gốc vẫn còn. Theo đề xuất
+watermark ở API 1.1, không mở lại **cùng tập chứng cứ đã được duyệt** chỉ do đọc
+lại/sang năm; giữ nguồn confirmed_manual và hiển thị điểm số thực chưa bị nâng.
+Chỉ khi có seen/not_seen hợp lệ mới sau watermark mới đánh giá việc mở lại ca;
+unknown không kích hoạt mở lại. Áp dụng CHƯA RÕ theo H vẫn bình thường khi không
+có bằng chứng mới. Quy tắc này còn cần nhóm duyệt, không xóa (a)/(b) khỏi số liệu
+tự động trước admin hoặc khỏi kết quả pre_review.
 
 ```text
 LẤY observation trước cutoff, accepted, có creator, đúng liên kết tấm và phiên bản

@@ -293,7 +293,7 @@ quả bằng chứng âm thực tế đã chứng minh.
 | Chi tiết/history | GET /signs/{sign_id}; GET /signs/{sign_id}/history |
 | Hàng chờ/detail ca | GET /admin/reviews; GET /admin/reviews/{review_id} |
 | Ảnh duyệt | GET /admin/observations/{observation_id}/evidence |
-| Mở ca thủ công | POST /admin/reviews (bổ sung 1.1) |
+| Mở ca thủ công | POST /admin/reviews (bổ sung 1.1; Nên có, ngoài MVP) |
 | Quyết định | POST /admin/reviews/{review_id}/decision |
 | Tạo ứng viên mới | POST /admin/signs |
 

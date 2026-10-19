@@ -496,8 +496,8 @@ Request minh họa: `{"sign_id":"sign-demo-1","reason":"Mở kiểm tra thủ c�
 Response 201: `{"review_id":"review-demo-manual","sign_id":"sign-demo-1","status":"pending","version":1}`.
 Nếu đã có review pending cùng sign, trả 200 ca đó thay vì tạo lặp. Không đổi sign.status
 khi chỉ mở ca; quyết định vẫn qua endpoint 1.0. Role admin, sign/evidence tồn tại;
-403 thiếu quyền, 404 không có sign. **Cần nhóm quyết:** duyệt lối mở ca thủ công
-này để dùng được confirmed_manual mà không giả tạo mâu thuẫn.
+403 thiếu quyền, 404 không có sign. Nhóm chốt 19/10: lối mở ca thủ công này **không
+thuộc MVP**, làm ở mục Nên có của [requirements.md](../requirements.md#phạm-vi-mvp).
 
 - Thêm GET trips, trace/manifest, ảnh replay, sign detail/history và review detail.
 - Thêm POST admin/reviews để mở ca xác nhận thủ công; không đổi hàng chờ nghi.

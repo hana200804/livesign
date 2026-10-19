@@ -31,7 +31,7 @@ evaluation:
   cutoff_exclusive_utc: {value: ["2024-01-01T00:00:00Z", "2025-01-01T00:00:00Z", "2026-01-01T00:00:00Z"], status: "dự kiến"} # Đề xuất chuẩn hóa UTC: captured_at nhỏ hơn cutoff tương ứng, không đọc dữ liệu tương lai.
   baseline_merge_radius_m: {value: 20, unit: m, status: "đã chốt"} # Dòng so sánh PB (cách làm phổ biến hiện nay): vị trí ảnh + gộp cùng loại trong 20 m, không xét hướng. Nhóm chốt 19/10: PB tách khỏi thang B0–B3.
   retain_negative_evidence_min: {value: 0.50, unit: ratio, status: "đã chốt"} # Giữ B3 khi phát hiện ≥50% trên mẫu nhìn rõ đã kiểm tra, ảnh 2048px.
-  drop_negative_evidence_below: {value: 0.30, unit: ratio, status: "đã chốt"} # Dưới 30% bỏ B3; khoảng [30%,50%) còn mở, không tự suy quyết định.
+  drop_negative_evidence_below: {value: 0.30, unit: ratio, status: "đã chốt"} # Dưới 30% bỏ B3; khoảng [30%,50%): không bật âm cho sản phẩm, B3 chỉ là phân tích phụ trong CLI (decisions.md 19/10).
   human_audit_images: {value: 60, unit: image, status: "đã chốt"} # Người duyệt ngẫu nhiên 60 ảnh và mọi ảnh model gán nhãn không chắc.
   detection_match_iou: {value: 0.50, unit: ratio, status: "dự kiến"} # Đề xuất khớp bbox đúng lớp trong bài thử B3, độc lập bán kính khớp mốc địa lý.
 

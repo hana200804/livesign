@@ -7,7 +7,7 @@ mới không có phân công tên người, mã việc hoặc kế hoạch theo 
 
 ## Phân tích, thiết kế và thực nghiệm
 
-- [requirements.md](requirements.md) — tác nhân, sáu use case, yêu cầu chức năng và phi chức năng.
+- [requirements.md](requirements.md) — tác nhân, bảy use case, yêu cầu chức năng/phi chức năng và **Phạm vi MVP** đã chốt.
 - [architecture.md](architecture.md) — thành phần, luồng tuần tự, vòng đời, triển khai và cấu hình môi trường.
 - [algorithms.md](algorithms.md) — định vị, gộp, nhìn được, điểm/vòng đời, chọn biển phía trước; pseudocode và ví dụ tính tay.
 - [ai-pipeline.md](ai-pipeline.md) — manifest dataset, lọc trùng/split, train, batch 2048px/tiling và bài thử B3.
@@ -31,7 +31,7 @@ mới không có phân công tên người, mã việc hoặc kế hoạch theo 
 
 ## Quyết định, môi trường và nguồn cấu hình
 
-- [decisions.md](decisions.md) — quyết định repo, bảng Còn mở, ba câu hỏi GVHD và đối chiếu PDF.
+- [decisions.md](decisions.md) — quyết định repo, bảng Còn mở, ba câu hỏi GVHD (không chờ trả lời) và đối chiếu PDF.
 - [setup.md](setup.md) — checklist môi trường/tài khoản theo phần và lệnh kiểm tra hiện có.
 - [preparation-audit.md](preparation-audit.md) — số liệu thật từ repo, giới hạn PoC và kiểm tra giai đoạn chuẩn bị.
 - [params.yaml](../config/params.yaml) — tên/giá trị/trạng thái tham số, params_version; tham số mới 1.1 đều dự kiến.

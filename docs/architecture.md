@@ -96,7 +96,7 @@ sequenceDiagram
   participant API as Spring bản đồ
   participant VM as Vietmap
   participant TTS as TextToSpeech
-  Driver->>App: Chọn chuyến, năm, loại xe; phát
+  Driver->>App: Chọn chuyến, năm, loại xe và phát
   App->>API: GET /trips và trace theo evaluation_year
   API-->>App: Manifest và NDJSON trước cutoff
   loop Mỗi điểm hợp lệ của replay

@@ -12,6 +12,9 @@ params_version + hash config, model_version/exporter, classes_version,
 evaluation_year/cutoff, seed, chế độ trước/sau admin và data_kind.
 T giữ [2023,2024,2025]; cutoff UTC độc quyền lần lượt 01/01 năm sau theo params.
 Không dùng observation, vị trí gộp, ảnh/cặp tham chiếu hoặc quyết định biết sau cutoff.
+Ngoại lệ có công bố: **vị trí** feature Mapillary (chỉ có bản hiện tại) được dùng làm dự phòng
+định vị; báo tỷ lệ sign định vị bằng feature mỗi năm và dòng độ nhạy tắt feature
+([algorithms.md](algorithms.md)).
 Ảnh được nạp sau này vẫn có captured_at lịch sử; ghi rõ retrospective, không nhận
 là thử nghiệm hệ chạy trực tiếp tại thời điểm chụp.
 
@@ -20,6 +23,8 @@ liệu ≤2022 để chọn tham số cho cả ba mốc. Lý do: chọn ngưỡn
 2023 như test độc lập sẽ rò kết quả. Nếu thiếu dữ liệu phát triển, công bố cấu hình
 do nhóm quy ước và chỉ phân tích độ nhạy, không gọi đó là ngưỡng tối ưu đã kiểm chứng.
 N/θ/θ_thấp còn null: đánh dấu bậc phụ thuộc là not_run, không tự dùng proposed để chấm chính.
+not_run vì N chưa chốt chỉ là báo tiến độ: B1/B2 chưa chạy thì **MVP chưa hoàn thành**. Chỉ B3
+được phép not_run như kết quả cuối, khi bài thử âm không đạt ([requirements.md](requirements.md#phạm-vi-mvp)).
 
 ## Thang B0–B3
 
@@ -32,10 +37,20 @@ N/θ/θ_thấp còn null: đánh dấu bậc phụ thuộc là not_run, không t
 | B3 | B2 và không ở suspected_change theo điểm giảm dần và dấu hiệu (a)(b)(c); cần bài thử âm cho phép |
 
 B0–B3 dùng **chung** định vị (giao tia → feature Mapillary) và luật gộp, chỉ khác bộ lọc
-bậc, nên chênh lệch giữa các bậc là do độ tin cậy. PB khác B0 ở định vị và gộp, nên
-PB → B0 đo tác dụng của định vị. Sign chỉ có camera_proxy không vào D của B0–B3; báo
+bậc, nên chênh lệch giữa các bậc là do độ tin cậy. PB khác B0 ở ba chỗ cùng lúc: định vị,
+gộp có xét hướng, và loại sign chỉ có camera_proxy khỏi D. Vì vậy PB → B0 là tác dụng của
+**cả gói**, không quy riêng cho định vị khi chưa chạy các dòng kiểm soát dưới đây. Sign chỉ có camera_proxy không vào D của B0–B3; báo
 riêng `unpositioned_count` (xem [algorithms.md](algorithms.md)). PB không bị loại như vậy
 vì vị trí ảnh chính là định nghĩa của nó.
+
+| Dòng kiểm soát | Khác bậc liền trước đúng một chỗ | Tách được |
+| --- | --- | --- |
+| PB+hướng | PB nhưng gộp có xét hướng mặt | Tác dụng gộp theo hướng |
+| B0+proxy | B0 nhưng giữ sign camera_proxy trong D | Tác dụng loại biển chưa định vị |
+| B0−feature | B0 nhưng tắt `positioning.feature_fallback_enabled` | Phụ thuộc vào ngoại lệ feature hiện tại |
+
+Ba dòng này là phân tích phụ, chạy bằng cùng CLI, có thể làm sau MVP; khi chưa chạy, quyển
+chỉ được nói PB → B0 là tác dụng của cả gói.
 
 Giữ nguyên detector, source corpus, tọa độ và luật gộp ở cả bốn bậc khi muốn quy
 cải thiện cho độ đa dạng/độ mới/mâu thuẫn. Gộp có hướng, giao tia hoặc feature
@@ -104,7 +119,12 @@ khớp một mốc chỉ được một TP. Đây không phải kết quả Live
 ### Trước và sau admin
 
 Chạy `pre_review` với quyết định tự động/quan sát trước cutoff; sau đó `post_review`
-trên cùng đầu vào, ghi mỗi quyết định và số ca/thời gian người duyệt. Không xóa
+trên cùng đầu vào, ghi mỗi quyết định và số ca/thời gian người duyệt. **Cutoff nghiêm:**
+post_review chỉ áp quyết định có cả effective_at và decided_at trước cutoff, như API. Quyết
+định làm năm 2026 thì số áp dụng cho 2023–2025 là 0 và post bằng pre; ghi rõ số này, đó là
+kết quả hợp lệ, chưa chứng minh tác dụng admin. Tải admin vẫn đo bằng số ca cần duyệt.
+Duyệt hồi cứu bằng ảnh cũ (chỉ dùng effective_at) là phép thử **riêng**, nhãn riêng, bảng
+riêng; không trộn vào cột trước/sau và có thể làm sau MVP. Không xóa
 khỏi kết quả trước duyệt những ca admin đã sửa. Báo chuyển dịch auto→manual,
 không cộng manual thành auto. Quyết định năm sau không lọt vào chấm lịch sử thật;
 demo tái diễn quyết định dùng scenario riêng, ghi rõ mô phỏng.

@@ -84,6 +84,30 @@ Gói model copy cục bộ có manifest, chưa thiết kế endpoint phát hành
 | CLI đánh giá | Chạy `core` trên observation trước cutoff với từng bậc/tham số, xuất CSV bản đồ | Không ghi vào CSDL dịch vụ |
 | Script chấm (Python) | Khớp một–một với bộ mốc, precision/coverage/bootstrap, bảng cho quyển | Không định vị, gộp hay tính điểm lại |
 
+### Ranh giới dữ liệu và quy mô MVP
+
+| Nguồn | Nơi giữ / ai được đổi |
+| --- | --- |
+| Lần thấy, payload hash và ảnh nguồn | Observation + kho manifest bất biến; importer thêm dữ liệu, không sửa ảnh/creator/time gốc |
+| Liên kết lần thấy–tấm | Registry có version, do `core` đề xuất; adapter lưu bền. Mỗi năm dùng liên kết từ dữ liệu trước cutoff, không dùng target hiện tại làm nhãn đúng cho quá khứ |
+| Quyết định | Review/history append-only, admin ghi với version; `core` chỉ áp dụng quyết định đủ cutoff |
+| Bản đồ theo năm | `snapshot_run` + `sign_snapshot` đã công bố là nguồn cho API. Không ghép thêm hướng/road_ref/replacement từ cache `sign` hiện tại |
+| Danh mục và tham số | YAML có version/hash; app nhận tham số lọc từ response. Đổi nội dung tạo run mới |
+| Bộ mốc / kết quả nghiên cứu | Manifest độc lập ngoài CSDL dịch vụ; không làm đầu vào gộp/xác nhận |
+
+Giới hạn thiết kế là một tuyến ~1,5 km, 12 lớp, ba mốc năm; 500 dòng/lô và 500 biển
+trả cho một chuyến là giới hạn đề xuất, **không phải số đếm hoặc tải đã đo**. Chưa có
+QPS/SLO hay thời gian dựng chứng minh được. MVP chạy một tiến trình Spring, một MySQL,
+một luồng ghi có thứ tự; đọc vẫn phục vụ snapshot đã công bố. Đo số ảnh/lần thấy/tấm,
+thời gian dựng, bộ nhớ và latency trước khi quyết định thêm hạ tầng.
+
+**Gom đa ảnh trước khi định vị (chốt 19/10):** `core` gom theo feature không mơ hồ, rồi
+theo vết trong từng sequence (cùng loại, gần về thời gian/vị trí camera, tia giao phía trước),
+định vị từng track, sau đó mới gộp track vào registry ([algorithms.md](algorithms.md), Gom
+lần thấy). Hai bước đầu không cần vị trí hay hướng mặt của biển nên không còn vòng phụ thuộc.
+Phải chứng minh trên đoạn 500 m: ảnh đầu chưa có facing tổng hợp vẫn nối được ảnh sau, còn
+hai tấm cùng loại trong một ảnh không bị nhập làm một.
+
 ## Nạp Mapillary đến bản đồ
 
 ```mermaid
@@ -118,6 +142,29 @@ lại). Một observation năm y ảnh hưởng mọi năm đánh giá ≥y, vì
 rejected, dòng hợp lệ lưu. Lỗi hệ thống giữa chừng: client retry cùng ID/hash. Quyết
 định admin đồng thời được chặn bằng optimistic lock/version.
 
+### Công bố snapshot, lỗi và thử lại
+
+1. Tuần tự hóa mọi thao tác ghi ảnh hưởng bản đồ (nạp lô/admin/dựng lại) trong một
+   tiến trình. Không chạy hai job cùng ghi registry/review hoặc cho run cũ công bố
+   đè run mới. Chuyển sang nhiều tiến trình cần cơ chế khóa bền riêng.
+2. Lưu dữ liệu gốc hoặc quyết định trong transaction ngắn, cố định `data_revision`
+   của tập đầu vào. Dựng các năm từ dữ liệu/registry/quyết định đủ cutoff; **kết quả
+   năm cũ không được ghi đè cache `sign` hiện tại**. Chỉ cập nhật cache từ mốc mới
+   nhất đang phục vụ; tạo lịch sử/ca phải idempotent, không sinh lại ca khi retry.
+3. Ghi đủ hàng snapshot rồi mới đổi `ready`/`superseded` trong transaction. Công bố
+   độc lập từng năm, chưa hứa đổi ba năm nguyên tử. Response chỉ rõ năm nào đã xong.
+4. Dựng lỗi giữ run cũ; chưa có run cũ thì GET trả 503. Lô/quyết định đã commit không
+   mất theo job: trả 503 `SNAPSHOT_BUILD_FAILED` và trạng thái đã lưu. Retry đúng lô
+   tiếp tục phần dựng còn thiếu dù mọi dòng đã duplicate. Quyết định admin đã ghi
+   phải đọc lại review/version, không tự gửi lại remove/replace.
+5. Sau khởi động lại, nhận diện run `building` bị gián đoạn, đánh dấu lỗi và dựng lại
+   từ dữ liệu bền. Không đổi nó sang `ready` chỉ vì đã có một phần hàng. Chi tiết
+   lỗi/khôi phục và cột bổ sung ở [API](contracts/api.md#thay-đổi-12) / [DDL](contracts/db-schema.md#thay-đổi-12).
+
+Lượt 2 giữ một `snapshot_run_id` sau lượt 1 cho từng năm chụp; mọi ảnh kiểm âm của năm
+đó dùng cùng vị trí/hướng. Dựng run mới sau mỗi lô âm không tự thay tập tham chiếu
+giữa lượt. Tiếp tục dùng run đã công bố kể cả khi đã `superseded`.
+
 ## Phát lại đến cảnh báo
 
 ```mermaid
@@ -146,6 +193,23 @@ Vòng lặp từng điểm không gọi API nhắc biển, nên độ trễ khi 
 khoảng cách giữa hai điểm GPS. App dùng tham số nhắc trả kèm response (không tự chép
 số vào code). `/signs/ahead` vẫn giữ làm bản tham chiếu: test đối chiếu chạy cùng một
 trace qua cả hai cách và yêu cầu ra cùng danh sách biển.
+
+Một phiên giữ nguyên `(evaluation_year, snapshot_run_id, vehicle_type, config_sha256,
+data_revision)` cho biển/chi tiết/history; cập nhật từ admin chỉ có hiệu lực ở lần
+tải lại chủ động hoặc phiên mới. Đổi xe khi pause giữ cùng run, lấy lại biển theo xe
+mới rồi reset bộ nhắc có log. Không tự đổi snapshot giữa hai điểm phát lại.
+
+Vùng tải `corridor_buffer_m` (50 m) đo quanh **đường trace**, không quanh điểm hiện tại.
+Biển nằm trong D nhưng ngoài vùng là biển chuyến không đi qua (sau điểm cuối trace, đường
+nhánh); không nhắc chúng là đúng, nên không mở rộng vùng theo D. Theo chiều ngang, nón 45°
+ở D=65 m chỉ lệch tối đa ~46 m khỏi hướng đi. Tính cảnh báo từ GPS/speed gốc như
+[algorithms.md](algorithms.md), Map Matching bổ sung liên kết đường; không âm thầm dịch tọa
+độ so với phép đối chiếu. Thiếu hướng/speed thì dừng nhắc, không coi danh sách rỗng là
+đường không có biển.
+
+`/signs/ahead` là phép lọc không giữ trạng thái: đối chiếu **ứng viên trước chống lặp**,
+cùng run/điểm/road_ref/xe/tham số, trong tập biển dọc chuyến ([API 1.2](contracts/api.md#thay-đổi-12)). Cooldown, tái tiếp cận, TTS và seek do app giữ;
+kiểm chúng bằng test phiên riêng.
 
 Map matching trả thông tin nào phải kiểm SDK/gói thực tế; chưa có bằng chứng có
 cùng ID đường với CSDL. Không đoán road_ref từ tên phố. GPS nhảy/hướng thiếu/
@@ -183,6 +247,14 @@ riêng theo API. Trong MVP biển thay phải đã có từ dữ liệu; `POST /
 decided_at đều trước cutoff (API 1.1), nên quyết định thật làm năm 2026 không đổi bản đồ
 2023–2025; khung cảnh demo chạy trong môi trường mô phỏng. Watermark đã duyệt là đề
 xuất còn mở, không xóa âm để làm tăng score.
+
+### Đánh giá lịch sử và duyệt hồi cứu
+
+Mặc định CLI post_review giữ cả `effective_at` và `decided_at` trước cutoff như API.
+Nếu mọi quyết định đều được làm năm 2026, số quyết định áp dụng cho 2023–2025 là 0,
+post có thể bằng pre. Đó là kết quả hợp lệ của điều kiện lịch sử, chưa chứng minh
+tác dụng admin. Phép duyệt hồi cứu bằng ảnh cũ là đề xuất riêng còn chờ quyết định;
+không bỏ kiểm decided_at trong đường sản phẩm hay đổi ngày ghi nhận thật.
 
 ## Vòng đời tấm biển
 
@@ -262,6 +334,21 @@ Nhóm chốt 19/10: JWT ký HS256, khóa ≥32 byte đọc từ `LIVESIGN_JWT_SE
 và manifest đọc từ `LIVESIGN_DATA_ROOT`; app đọc base URL từ `LIVESIGN_API_BASE_URL` trong
 local.properties/BuildConfig như key Vietmap. Thêm ba tên này vào .env.example khi khởi tạo
 project, không hard-code secret. HTTPS/phân quyền vẫn là yêu cầu, chưa được kiểm chứng đã cấu hình.
+
+## Vận hành tối thiểu và đánh đổi
+
+| Chọn cho MVP | Đổi lại / khi cần xem lại |
+| --- | --- |
+| Một backend + một luồng ghi, dựng đồng bộ cả năm | Ít thành phần, dùng chung transaction/registry; nạp lô chờ dựng. Nếu phép đo vượt timeout/bộ nhớ thì đề xuất job bất đồng bộ và hợp đồng theo dõi job trước khi đổi |
+| Snapshot bất biến sau công bố, giữ run cũ cho phiên đang đọc | Đọc nhanh và tái lập được; thêm dung lượng. MVP chưa tự dọn run, ảnh, manifest đang được tham chiếu |
+| Lọc nhắc cục bộ, backend có bản tham chiếu | Tránh mạng trong vòng lọc; phải duy trì parity và vùng tải đủ rộng. Kotlin chỉ lặp luật lọc nhắc, không viết lại định vị/gộp/điểm/vòng đời |
+| Ổ đĩa có manifest/hash và MySQL | Dễ dựng demo; là điểm lỗi đơn. Sao lưu CSDL **cùng** registry/manifest/ảnh, khôi phục rồi kiểm hash/run trước mở demo |
+
+Log tối thiểu: request_id, batch/review_id, input revision, run_id/năm, thời gian dựng,
+count dòng/biển, lỗi và trạng thái công bố; không log JWT/key hoặc bytes ảnh. Khi
+dựng lỗi, người vận hành phải thấy run nào lỗi và dữ liệu nào đã lưu để thử lại.
+Kiểm thử khôi phục một bản sao trước buổi demo. Chưa cam kết HA, failover hoặc
+QPS/latency chưa đo; không thêm Redis, broker hay dịch vụ mới để giải quyết tải giả định.
 
 ## Bất biến xuyên suốt
 

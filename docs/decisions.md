@@ -29,6 +29,11 @@ file repo trong [bảng đối chiếu](preparation-audit.md), và phản hồi 
 | Cài đặt xe trên app | Lưu lựa chọn xe/TTS cục bộ, không thêm API ghi hồ sơ xe | Nhóm qua người dùng | 19/10 |
 | Mở ca xác nhận thủ công | `POST /admin/reviews` (API 1.1) và `POST /admin/signs` không thuộc MVP, nằm ở Nên có; đặc tả giữ nguyên trong api.md | Nhóm qua người dùng | 19/10 |
 | Cấu hình triển khai | JWT HS256, khóa ≥32 byte từ `LIVESIGN_JWT_SECRET`; `LIVESIGN_DATA_ROOT` cho kho ảnh/manifest; `LIVESIGN_API_BASE_URL` cho app qua local.properties; thêm vào .env.example khi khởi tạo project ([architecture.md](architecture.md)) | Nhóm qua người dùng | 19/10 |
+| Post_review cutoff nghiêm | CLI post_review áp quyết định có cả effective_at và decided_at trước cutoff như API; quyết định làm năm 2026 thì post bằng pre, ghi số áp dụng = 0 ([evaluation.md](evaluation.md)) | Nhóm qua người dùng | 19/10 |
+| Gom đa ảnh trước định vị | Bốn bước: theo feature → theo vết trong sequence → định vị track → gộp track vào registry; track_max_gap 3 s/30 m dự kiến, kiểm trên 500 m ([algorithms.md](algorithms.md)) | Nhóm qua người dùng | 19/10 |
+| Snapshot khi lỗi và giữ run | 503 `SNAPSHOT_BUILD_FAILED` sau khi đã lưu, retry lô dựng lại phần thiếu, `POST /admin/snapshots/rebuild`; công bố chỉ khi input_seq không lùi; phiên giữ `snapshot_run_id` ([api.md](contracts/api.md), [db-schema.md](contracts/db-schema.md)) | Nhóm qua người dùng | 19/10 |
+| Vùng biển dọc chuyến | Giữ 50 m quanh trace; biển ngoài vùng là biển chuyến không đi qua, không nhắc; đối chiếu `/signs/ahead` trong tập này, trước chống lặp | Nhóm qua người dùng | 19/10 |
+| Ngoại lệ feature Mapillary | Dùng vị trí feature hiện tại cho năm cũ là ngoại lệ có công bố; báo tỷ lệ và dòng độ nhạy tắt feature | Nhóm qua người dùng | 19/10 |
 | Môi trường mô phỏng/demo | CSDL demo riêng, manifest `scenario_id`, nhãn “mô phỏng” trên mọi màn; bản params riêng (params_version khác) được bật `negative_evidence_enabled`; đánh giá thật vẫn kiểm decided_at và không dùng bản params này | Nhóm qua người dùng | 19/10 |
 | Ba outcome | seen / not_seen / unknown; âm phải đủ điều kiện nhìn được ≤30 m; unknown không cập nhật điểm/độ mới | V3.3 + yêu cầu hiện tại | Trước tích hợp |
 | Đơn vị bằng chứng | Cặp (creator_id, năm), dương ưu tiên nếu cùng cặp có cả seen và not_seen; prior không tính N | V3.3 | Trước triển khai điểm |
@@ -75,7 +80,7 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Augment biển | **Cần nhóm quyết:** tắt flip ngang, chỉ thử augment không làm đổi nghĩa biển trên validation; không để thư viện tự đổi cấu hình giữa các run | Trước khóa train config |
 | Tiling batch | **Cần nhóm quyết:** so toàn ảnh với ô 640/chồng 20% trên cùng tập phát triển; chọn bằng recall/time, không suy tiling luôn tốt từ PoC | Trước chạy batch chính |
 | Đối sánh bài thử B3 | **Cần nhóm quyết:** đúng lớp/tấm + IoU≥0,50 với bbox gán độc lập, khóa trước thử để không nhầm tấm đúng hướng | Trước quyết định B3 |
-| Quyết định admin trong post_review | **Cần nhóm quyết:** quyết định thật làm năm 2026 không qua được kiểm decided_at của năm 2023–2025. Đề xuất: CLI chế độ post dùng effective_at do admin gán theo ảnh, đánh nhãn duyệt hồi cứu, báo riêng; API sản phẩm giữ kiểm cả hai mốc | Trước chạy post_review |
+| Duyệt hồi cứu | **Cần nhóm quyết:** có chạy phép thử riêng dùng effective_at theo ảnh cũ hay không; nếu chạy thì nhãn và bảng riêng, không trộn với trước/sau cutoff nghiêm. Không chặn MVP | Sau MVP |
 | Tập chọn tham số | **Cần nhóm quyết:** dùng dữ liệu ≤2022 để chọn tham số cho ba mốc 2023–2025; nếu thiếu thì công bố ngưỡng quy ước và phân tích nhạy, không tune trên năm được chấm | Trước chạy thang đối chứng |
 | Kịch bản tiêm mô phỏng | **Cần nhóm quyết:** khóa seed, 10 biển giả/5 tấm đổi, prior giả và thứ tự replay trong CSDL riêng; giữ control/censored và báo riêng ca thật | Trước mô phỏng |
 | Quy trình đo thiết bị | **Cần nhóm quyết:** ít nhất 3 lượt 1x, làm nóng 30 s, pin 10 phút; khóa t_gặp/TTS và ngưỡng FPS/latency/pin sau pilot, không bịa chỉ tiêu | Trước đo app |
@@ -132,6 +137,8 @@ nhật Phạm vi MVP và bảng Đã chốt; lần chuẩn bị này không gử
 Độc lập theo tài khoản chỉ là đại diện gần đúng; điểm Beta là quy ước chưa hiệu chỉnh.
 Các ca giả/thay loại trong CSDL là mô phỏng; không chứng minh hiệu quả ngoài đường.
 Mapillary feature chỉ là gợi ý/đối chứng, không dùng train hay làm bộ mốc chuẩn.
+Vị trí feature hiện tại dùng cho năm cũ là ngoại lệ dữ liệu tương lai, phải báo tỷ lệ và độ nhạy.
+PB → B0 là tác dụng của cả gói định vị + gộp có hướng + loại biển chưa định vị, trừ khi đã chạy các dòng kiểm soát.
 Bộ mốc phải duyệt toàn đoạn, 20% tấm biển gán chéo; mô phỏng 10 biển giả + thay 5 biển,
 ca thật tìm từ ảnh công khai nhiều năm và báo riêng. Không nêu tên/so sánh với đồ án cụ thể;
 phương án đối chứng gọi là **cách làm phổ biến hiện nay**.

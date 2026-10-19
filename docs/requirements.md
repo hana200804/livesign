@@ -7,6 +7,21 @@ admin. Tài liệu là thiết kế, không phải báo cáo chức năng đã c
 Nguồn đúng là [quyết định repo](decisions.md), [hợp đồng API](contracts/api.md),
 [tham số](../config/params.yaml); khác PDF cũ đã ghi trong decisions.md.
 
+## Bài toán và kết quả cần chứng minh
+
+Ảnh nhận diện riêng lẻ chưa trả lời được một tấm biển còn đáng tin đến năm nào,
+có áp dụng cho xe đang chọn không, và ai được quyết định khi bằng chứng trái nhau.
+MVP cần chứng minh ba kết quả sau, trên **một** tuyến dữ liệu công khai:
+
+| Kết quả | Bằng chứng nghiệm thu |
+| --- | --- |
+| Bản đồ theo năm có thể kiểm lại | Mỗi biển truy về lần thấy/cặp người–năm, cấu hình và run; đổi năm không dùng quan sát tương lai |
+| Nhắc đúng bối cảnh phát lại | Chọn xe/năm/chuyến → danh sách nhắc nhất quán → banner/TTS có log thời gian; lỗi hoặc thiếu dữ liệu được thể hiện rõ |
+| Mâu thuẫn có người chịu trách nhiệm quyết | Ca nghi → xem bằng chứng → quyết định có version/history; số liệu trước/sau và mô phỏng được báo riêng |
+
+“Chốt MVP” là khóa phạm vi và tiêu chí dưới đây. Chưa đồng nghĩa dữ liệu, ngưỡng,
+model hoặc ứng dụng đã đạt. Điều kiện sẵn sàng cho demo thật vẫn phải kiểm riêng.
+
 ## Tác nhân và use case
 
 | Tác nhân | Mục tiêu / quyền |
@@ -61,7 +76,7 @@ flowchart LR
 | Luồng chính | Lấy sign-types cùng version → gửi GET signs theo bbox/năm (đọc snapshot `ready`) → đọc hết cursor cần thiết → hiển thị marker/status và chú giải → mở chi tiết tấm |
 | Luồng lỗi | 400 bbox/năm sai: yêu cầu sửa; 401 đăng nhập lại; 404 tấm chưa có ở cutoff; 503 `SNAPSHOT_NOT_READY`: báo đang dựng, thử lại sau; mất mạng chỉ hiển thị cache có nhãn/version |
 | Hậu điều kiện | Chỉ trạng thái/vị trí của snapshot chọn được hiển thị; không cập nhật CSDL vì thao tác xem |
-| Chấp nhận | Đổi năm không nhận response năm cũ; response bản đồ có `snapshot_run_id`; không lấy candidate/removed làm cảnh báo chỉ vì marker có trên bản đồ |
+| Chấp nhận | Đổi năm không nhận response năm cũ; giữ `snapshot_run_id` cho phân trang/chi tiết/history trong cùng lần xem; không lấy candidate/removed làm cảnh báo chỉ vì marker có trên bản đồ |
 
 ### Phát lại chuyến đi và nhận cảnh báo
 
@@ -72,7 +87,7 @@ flowchart LR
 | Luồng chính | GET trips/trace → GET biển dọc chuyến (một lần) → Map Matching cả vết (một lần) → phát theo t gốc, tải trước ảnh đúng image_id → lọc biển phía trước cục bộ theo vị trí/hướng/speed/xe → chống lặp → banner + TTS, ghi log thời gian |
 | Luồng lỗi | Trace chỉ ngày/GPS nhảy: ngắt đoạn, không bịa tốc độ; thiếu ảnh: dừng/bỏ frame có log; thiếu map match: unverified; model sai lớp/hash: tắt suy luận và báo lỗi; 503 snapshot chưa sẵn sàng: chưa cho phát; >500 biển: 413, chia chuyến; mất mạng: chỉ cache phù hợp |
 | Hậu điều kiện | Thể hiện đúng nhãn unclear/suspected_change; ảnh và bbox đồng bộ; replay thuần không sinh cặp bằng chứng mới |
-| Chấp nhận | Nhắc trước ≥warning_min_lead_s=5 là chỉ tiêu đo; nếu trễ phải báo trễ, không sửa log. Không nhắc biển `alertable=false` (candidate/removed/replaced, thiếu hướng mặt, chỉ single_view, không áp dụng xe). Lọc cục bộ dùng `alert_params` từ response, ra cùng danh sách với `/signs/ahead` trên cùng trace |
+| Chấp nhận | Nhắc trước ≥warning_min_lead_s=5 là chỉ tiêu đo; nếu trễ phải báo trễ, không sửa log. Không nhắc biển `alertable=false` (candidate/removed/replaced, thiếu hướng mặt, chỉ single_view, không áp dụng xe). Khóa một run/cấu hình trong phiên; biển ngoài vùng dọc chuyến không nhắc. Đối chiếu với `/signs/ahead` trên cùng run/điểm/xe/tham số, **trước chống nhắc lặp**, trong tập biển dọc chuyến; chống lặp là trạng thái của app |
 
 ### Chọn loại xe
 
@@ -93,7 +108,7 @@ flowchart LR
 | Tiền điều kiện | JSONL/schema 1.0 đúng hợp đồng; một trip/lô; classes_version được hỗ trợ, creator/time giữ gốc; không có credential trong payload |
 | Luồng chính | Chuẩn bị ảnh/metadata/manifest ngoài git → tạo observation ID bền → **lượt 1**: POST observations/batch chỉ seen/unknown, kèm bbox, tư thế camera, `feature_candidates` → kiểm envelope/dòng → lưu dòng hợp lệ/idempotency → job snapshot gọi `core` (gom, định vị, hướng mặt, gộp, điểm, trạng thái) cho các năm bị ảnh hưởng → trả count/kết quả dòng. **Lượt 2**, chỉ khi `negative_evidence_enabled`: GET signs theo năm chụp → kiểm nhìn được → POST not_seen → dựng lại run các năm bị ảnh hưởng |
 | Luồng lỗi | Envelope sai: từ chối cả lô; từng dòng sai: rejected, dòng đúng vẫn lưu; cùng ID khác payload: conflict; not_seen khi chưa duyệt âm:422; retry cùng payload không nhân quan sát; model bỏ sót đơn thuần không được gửi âm |
-| Hậu điều kiện | Truy vết được ảnh/model/creator/time; unknown không cộng điểm/độ mới; N/θ null chưa tự xác nhận; run snapshot mới `ready`, run cũ phục vụ tới lúc đó rồi sang `superseded` |
+| Hậu điều kiện | Truy vết được ảnh/model/creator/time; unknown không cộng điểm/độ mới; N/θ null chưa tự xác nhận. Lô hợp lệ thay đổi dữ liệu chỉ thành công trọn khi các run bị ảnh hưởng `ready`; nếu đã lưu nhưng dựng lỗi, trả lỗi riêng và giữ run công bố cũ, retry không nhân dữ liệu ([API 1.2](contracts/api.md#thay-đổi-12)) |
 | Chấp nhận | Count tổng bằng số dòng, duplicate không tăng cặp; source/trip/sequence/creator bất biến đúng envelope |
 
 ### Duyệt ca nghi thay đổi
@@ -105,7 +120,7 @@ flowchart LR
 | Luồng chính | GET queue/detail/evidence → xem điểm/tuổi/lý do → chọn confirm/keep/remove/replace/defer + lý do → POST decision expected_version → transaction sign/review/history → dựng lại run các năm mà quyết định có hiệu lực → nhận trạng thái mới |
 | Luồng lỗi | 403: không có quyền; thiếu bằng chứng/replacement:422; 409: tải và xem lại trước quyết; mất mạng sau gửi: đọc lại version trước thử lại; không tự retry thao tác gỡ/thay |
 | Hậu điều kiện | confirm/keep là manual; defer còn pending; removed/replaced chỉ admin và giữ history; tấm thay có sign_id riêng |
-| Chấp nhận | Hai admin cùng version chỉ một quyết định được ghi; không gỡ chỉ vì thiếu ảnh mới; một ca pending/sign |
+| Chấp nhận | Hai admin cùng version chỉ một quyết định được ghi; không gỡ chỉ vì thiếu ảnh mới; một ca pending/sign. Quyết định đã commit nhưng dựng lỗi không được gửi lại như quyết định mới: tải lại review/version, chỉ thử dựng lại phần còn thiếu |
 
 Mở ca xác nhận thủ công cho candidate/unclear (`POST /admin/reviews`, API 1.1) **không
 thuộc MVP**, nằm ở mục Nên có; không giả chúng đã nghi thay đổi để dùng hàng chờ hiện có.
@@ -130,7 +145,7 @@ thuộc MVP**, nằm ở mục Nên có; không giả chúng đã nghi thay đ�
 | Luồng chính | CLI (cùng jar `core`) đọc observation trước cutoff, JDBC chỉ đọc → chạy PB, B0–B3 cho 2023/2024/2025, pre/post review → xuất `maps-<năm>-<bậc>-<pre\|post>.csv` + manifest → script Python ghép một–một với bộ mốc → map-metrics, matches, conflict-cases ([evaluation.md](evaluation.md)) |
 | Luồng lỗi | N/θ null hoặc B3 không được giữ: bậc phụ thuộc ghi not_run; thiếu snapshot feature Mapillary tại T: not_available; mẫu số 0: null, không tự 0%/100% |
 | Hậu điều kiện | Không ghi CSDL dịch vụ; mỗi CSV có manifest đủ tái lập |
-| Chấp nhận | Cùng đầu vào ra cùng hash file; không dùng observation/quyết định sau cutoff; không lấy bảng `sign_snapshot` làm kết quả thực nghiệm |
+| Chấp nhận | Cùng đầu vào ra cùng hash file; không dùng observation/quyết định sau cutoff; không lấy bảng `sign_snapshot` làm kết quả thực nghiệm. Post_review theo cutoff nghiêm có thể bằng pre_review khi không có quyết định hợp lệ; không gọi đó là hiệu quả duyệt hồi cứu |
 
 ## Yêu cầu phi chức năng và nghiệm thu
 
@@ -148,7 +163,7 @@ thuộc MVP**, nằm ở mục Nên có; không giả chúng đã nghi thay đ�
 | Auth/bảo mật | bcrypt cho mật khẩu, JWT Bearer, role user/importer/admin, HTTPS | Không ghi plain password/token; user không gọi quyết định; kiểm path/ảnh/cutoff |
 | Truy vết | 100% dòng được tính điểm có ảnh/creator/time/model và target liên kết hợp lệ | Thiếu không vào cặp, metadata_only lưu audit riêng |
 | Tái lập | Corpus/GT/model/config/registry/commit/hash bất biến | Cùng manifest cho cùng kết quả, kể cả thứ tự lô hoặc công bố giới hạn registry |
-| Snapshot | Dựng sau mỗi lô/quyết định admin; API chỉ đọc run `ready` mới nhất, không tính lại khi đọc | Test đọc trong lúc dựng vẫn ra run cũ; 503 khi năm chưa có run |
+| Snapshot | Mặc định đọc run `ready` mới nhất; phiên đang xem được giữ run đã công bố, kể cả khi nó thành `superseded`; không tính lại khi đọc | Đổi run không trộn trang/chi tiết/nhắc; lỗi dựng giữ bản cũ; 503 khi năm chưa có run |
 | Một bản thuật toán | Định vị/hướng mặt/gộp/điểm/vòng đời chỉ trong `core` | Không có bản thứ hai trong Python/Kotlin; lọc cục bộ app khớp `/signs/ahead` trên cùng trace |
 
 D=v×(5 s+đệm) chỉ bù độ trễ trung bình, chưa bảo đảm mọi lượt nhắc kịp; hạn chế đã nêu trong thuật toán.
@@ -161,6 +176,11 @@ ngưỡng đạt đặt sau pilot (xem Phụ thuộc chưa có số).
 Chốt 19/10. MVP là bản phải xong để bảo vệ: **một luồng demo trọn** từ ảnh Mapillary
 đến nhắc biển và admin duyệt, cộng **đủ số liệu trả lời câu hỏi nghiên cứu** (PB, B0–B3
 theo năm). Mục Nên có chỉ bắt đầu khi tiêu chí hoàn thành bên dưới đã đạt.
+
+Hai phần nghiệm thu dùng chung đầu vào và `core`: **sản phẩm** là backend/app/web
+chạy luồng demo; **thực nghiệm** là CLI + bộ mốc + bảng kết quả. Không tính việc xuất
+CSV là đã có app, hoặc app chạy là đã trả lời câu hỏi nghiên cứu. Khi cần cắt thêm
+phạm vi, cập nhật bảng này cùng tiêu chí hoàn thành trước khi triển khai.
 
 ### Bắt buộc
 
@@ -185,6 +205,7 @@ CSDL mô phỏng có nhãn ([ui.md](ui.md), Khung cảnh demo). MVP vẫn đạt
 - `POST /admin/signs` cho admin tạo tấm biển chưa có trong dữ liệu (API 1.0).
 - Tải trước cả chuyến/cache có nhãn version để phát lại khi mất mạng giữa chừng.
 - MinIO thay ổ đĩa cho kho ảnh và manifest.
+- Dòng kiểm soát PB+hướng, B0+proxy, B0−feature và phép duyệt hồi cứu ([evaluation.md](evaluation.md)); chưa chạy thì quyển chỉ nói PB → B0 là tác dụng cả gói.
 
 ### Không làm
 
@@ -200,17 +221,32 @@ xóa vật lý sign/history; tuyến thứ hai.
 | N/θ/θ_thấp | Phải có `value` trước lần dựng snapshot thật: số đo nếu đủ, không thì nhóm ghi giá trị quy ước (đề xuất 3/0,75/0,40) và báo độ nhạy. Còn null thì không biển nào tự xác nhận, app không có biển để nhắc | 25/10 |
 | B3 | ≥50% giữ, <30% bỏ (params). Khoảng [30%,50%): không bật âm cho bản đồ sản phẩm; B3 chỉ chạy trong CLI như phân tích phụ, báo kèm tỷ lệ bài thử | 25/10 |
 | FPS/latency/pin | Không chặn MVP: đo đủ protocol và báo số; ngưỡng đạt đặt sau pilot | Sau pilot |
-| Quyết định admin trong post_review | Quyết định làm năm 2026 không qua kiểm decided_at của 2023–2025; cách gán mốc hồi cứu theo bảng Còn mở của decisions.md. MVP vẫn phải ra đủ cột pre/post | Trước chạy post_review |
+| Quyết định admin trong post_review | Giữ cutoff nghiêm: nếu không có quyết định đủ hai mốc thì post bằng pre, ghi số quyết định áp dụng = 0. Duyệt hồi cứu là phép thử riêng còn chờ nhóm quyết; không chặn bảng lịch sử nghiêm | Trước chạy post_review |
+| Gom đa ảnh và hướng mặt | Cách gom bốn bước đã chốt ([algorithms.md](algorithms.md), Gom lần thấy); phải chứng minh trên thử 500 m có nhãn tay rằng ghép được các seen cùng tấm **trước** giao tia và không nhập hai tấm cùng ảnh | Trước viết gộp chính |
 
 ### Tiêu chí MVP hoàn thành
 
 1. Nạp corpus tuyến demo ba năm từ một manifest → mỗi năm 2023/2024/2025 có `snapshot_run` `ready`.
 2. App phát lại ít nhất một chuyến mỗi năm, nhắc đúng loại xe (P.103a không nhắc motorcycle), có log t_gặp/t_banner/t_TTS.
-3. Test đối chiếu: lọc cục bộ của app và `/signs/ahead` ra cùng danh sách trên cùng trace.
+3. Test đối chiếu: lọc cục bộ của app và `/signs/ahead` ra cùng danh sách ứng viên trên cùng trace, cùng run/tham số/xe; test chống lặp riêng. Cập nhật snapshot giữa phiên không đổi run của phiên đang phát.
 4. Khung cảnh demo chạy trọn: biển xác nhận 2023 → NGHI THAY ĐỔI → admin replace → app nhắc biển mới; bản đồ 2023 không đổi. Chạy trong môi trường mô phỏng (quyết định thật làm năm 2026 không vào bản đồ 2023–2025); ảnh có thể là ca thật. Biển thay phải tự đạt confirmed_auto bằng bằng chứng có sẵn (kịch bản mô phỏng cấp đủ N cặp), để demo không phụ thuộc mục Nên có.
 5. CLI + script ra `map-metrics.csv` đủ tổ hợp bậc × năm × pre/post, hoặc lý do not_run; cùng đầu vào cùng hash.
 6. Có `model-metrics.csv` và `device-runs.csv` (≥3 lượt) trên máy Android thật.
 7. Các test ở mục "Unit test điểm và vòng đời — bắt buộc" và "Bổ sung theo kiến trúc 1.2" của [testing.md](testing.md) chạy đạt.
+
+`not_run` chỉ được dùng cho bậc có điều kiện không đạt (B3 theo bài thử), hoặc để
+báo tiến độ khi ngưỡng chưa khóa. N còn null làm B1/B2 chưa chạy được thì **MVP
+chưa hoàn thành**; không dùng đủ dòng CSV rỗng để thay tiêu chí nghiệm thu.
+
+### Điều kiện sẵn sàng cho demo thật
+
+- Tuyến/corpus/manifest ba năm đã khóa; có ít nhất một chuyến phát được và một tấm
+  `alertable=true` trên chuyến đó ở **mỗi** năm. Báo count cặp, tọa độ và hướng mặt;
+  không suy số này từ coverage tổng khu hoặc từ mẫu minh họa.
+- Danh mục/ánh xạ nhãn, model manifest, cấu hình vận hành và registry có version/hash;
+  N/θ/θ_thấp được nhóm duyệt. B3 tắt vẫn có thể đạt MVP bằng kịch bản mô phỏng riêng.
+- MySQL thực thi được DDL; app thật truy cập được API/Vietmap/ảnh và chạy TFLite;
+  chứng minh một luồng xuyên suốt trước khi mở phần Nên có.
 
 ## Ngoài phạm vi và giới hạn
 

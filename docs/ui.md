@@ -97,7 +97,9 @@ Không dùng biển chọn trên bản đồ làm vị trí xe.
 Dữ liệu: điểm trace gốc, ảnh hiện tại, detection TFLite nếu bật, tọa độ đã map
 match riêng, items ahead. Khi bắt đầu gọi một lần `GET /trips/{trip_id}/signs` (biển dọc
 chuyến + `alert_params`) và Map Matching cả vết; trong lúc phát chỉ tải trước ảnh, lọc biển
-phía trước cục bộ (kiến trúc 1.2); JWT đúng quyền. Detector không trực tiếp
+phía trước cục bộ (kiến trúc 1.2); JWT đúng quyền. Phiên giữ `snapshot_run_id` của lần
+tải đầu cho mọi lần mở chi tiết/history; 410 `SNAPSHOT_RUN_GONE` thì báo và mở phiên mới,
+không tự đổi run giữa chừng. Detector không trực tiếp
 quyết sign.status. Replay thuần không gửi lại bằng chứng đã nhập.
 
 | Trạng thái | Hành động / xử lý |

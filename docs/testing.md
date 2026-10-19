@@ -164,6 +164,12 @@ không tự đổi checklist hoặc workflow chỉ để làm chúng trông gi�
 | Test | Nội dung | Đạt khi |
 | --- | --- | --- |
 | Unit `core` | Chạy định vị, hướng mặt, gộp, điểm không cần Spring/MySQL, dùng ví dụ số trong algorithms.md | Ra đúng số tính tay |
-| Đối chiếu nhắc biển | Cùng trace minh họa: app lọc cục bộ từ `GET /trips/{trip_id}/signs` vs gọi `/signs/ahead` từng điểm | Cùng danh sách sign_id ở mọi điểm |
+| Đối chiếu nhắc biển | Cùng trace minh họa và `snapshot_run_id`: ứng viên trước chống lặp của app (lọc từ `GET /trips/{trip_id}/signs`) vs items `/signs/ahead` từng điểm giao tập biển dọc chuyến; có ca biển sau điểm cuối trace và biển đường nhánh | Cùng danh sách sign_id ở mọi điểm; chênh chỉ ở biển ngoài vùng |
+| Chống nhắc lặp | Test phiên của app: cooldown, tái tiếp cận, seek về trước, đổi xe khi pause | Đúng luật algorithms.md, có log reset |
+| Gom đa ảnh | Đoạn 500 m có nhãn tay theo tấm; có ca hai tấm cùng loại cùng ảnh và track không có feature | Báo độ thuần/đủ của track, số mơ hồ; hai tấm cùng ảnh không bị nhập |
+| Giữ run trong phiên | Công bố run mới giữa lúc phát lại | Chi tiết/history/ahead của phiên vẫn ra run cũ; history không có dòng input_seq lớn hơn run |
+| Dựng lỗi | Ép job lỗi sau khi commit lô/quyết định; dừng tiến trình giữa lúc `building` | 503 `SNAPSHOT_BUILD_FAILED` có đủ counts; run cũ vẫn phục vụ; retry lô duplicate hoặc khởi động lại dựng bù đúng năm |
+| Công bố đúng thứ tự | Đánh dấu ready một run có input_seq nhỏ hơn run đang ready | Bị từ chối, run mới hơn vẫn phục vụ |
+| Năm cũ không đọc cache hiện tại | Replace năm 2025, rồi mở chi tiết/bằng chứng 2023 | Trạng thái, replacement và lần thấy theo run 2023 |
 | CLI lặp lại được | Chạy CLI hai lần trên cùng dữ liệu và cấu hình | Hash các file maps CSV giống nhau |
 | Dựng snapshot | Dựng một run khi API đang đọc | API chỉ thấy run `ready`; đổi run trong một transaction |

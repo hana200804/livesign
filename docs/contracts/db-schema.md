@@ -377,6 +377,12 @@ Thêm hai bảng; tám bảng 1.0 giữ nguyên. Bảng chỉ chứa bản đồ
 định admin); bản trước duyệt cho thực nghiệm do CLI đánh giá xuất CSV, không ghi vào đây.
 
 ```sql
+CREATE TABLE data_state (
+  id TINYINT UNSIGNED PRIMARY KEY,
+  input_seq BIGINT UNSIGNED NOT NULL,
+  CONSTRAINT ck_data_state_single CHECK (id = 1)
+) ENGINE=InnoDB;
+
 CREATE TABLE snapshot_run (
   run_id VARCHAR(160) PRIMARY KEY,
   evaluation_year SMALLINT UNSIGNED NOT NULL,
@@ -385,9 +391,11 @@ CREATE TABLE snapshot_run (
   config_sha256 CHAR(64) NOT NULL,
   classes_version VARCHAR(64) NOT NULL,
   data_revision VARCHAR(64) NOT NULL,
+  input_seq BIGINT UNSIGNED NOT NULL,
   core_version VARCHAR(64) NOT NULL,
-  status ENUM('building','ready','superseded') NOT NULL DEFAULT 'building',
+  status ENUM('building','ready','superseded','failed') NOT NULL DEFAULT 'building',
   sign_count INT UNSIGNED NULL,
+  error_code VARCHAR(64) NULL,
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   ready_at DATETIME(3) NULL,
   INDEX ix_run_lookup (evaluation_year, status, created_at)
@@ -401,8 +409,14 @@ CREATE TABLE sign_snapshot (
   location_method ENUM('ray_least_squares','mapillary_feature','camera_proxy') NOT NULL,
   sign_facing_deg DOUBLE NULL,
   facing_source ENUM('aggregated','single_view','insufficient') NOT NULL,
+  ray_count SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  ray_residual_m DOUBLE NULL,
+  source_sign_id VARCHAR(160) NULL,
+  road_ref VARCHAR(255) NULL,
   status ENUM('candidate','confirmed_auto','confirmed_manual','unclear',
               'suspected_change','removed','replaced') NOT NULL,
+  last_confirmation_source ENUM('auto','manual') NULL,
+  replacement_sign_id VARCHAR(160) NULL,
   alpha DECIMAL(18,9) NOT NULL,
   beta DECIMAL(18,9) NOT NULL,
   agreement_score DECIMAL(10,9) NOT NULL,
@@ -417,17 +431,45 @@ CREATE TABLE sign_snapshot (
   CONSTRAINT fk_snapshot_run FOREIGN KEY (run_id) REFERENCES snapshot_run(run_id),
   CONSTRAINT fk_snapshot_sign FOREIGN KEY (sign_id) REFERENCES sign(sign_id),
   CONSTRAINT fk_snapshot_type FOREIGN KEY (sign_type_code) REFERENCES sign_type(sign_type_code),
+  CONSTRAINT fk_snapshot_replacement FOREIGN KEY (replacement_sign_id) REFERENCES sign(sign_id),
+  CONSTRAINT ck_snapshot_replaced CHECK (status <> 'replaced' OR replacement_sign_id IS NOT NULL),
   CONSTRAINT ck_snapshot_facing CHECK (sign_facing_deg IS NULL OR (sign_facing_deg >= 0 AND sign_facing_deg < 360)),
   CONSTRAINT ck_snapshot_facing_source CHECK (facing_source <> 'aggregated' OR sign_facing_deg IS NOT NULL),
   CONSTRAINT ck_snapshot_score CHECK (alpha >= 1 AND beta >= 1 AND agreement_score BETWEEN 0 AND 1),
   CONSTRAINT ck_snapshot_conflicts CHECK (JSON_TYPE(conflict_reasons) = 'ARRAY')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_as_cs;
+
+CREATE TABLE sign_snapshot_observation (
+  run_id VARCHAR(160) NOT NULL,
+  observation_id VARCHAR(160) NOT NULL,
+  sign_id VARCHAR(160) NOT NULL,
+  PRIMARY KEY (run_id, observation_id),
+  INDEX ix_snapshot_obs_sign (run_id, sign_id),
+  CONSTRAINT fk_snapshot_obs_row FOREIGN KEY (run_id, sign_id) REFERENCES sign_snapshot(run_id, sign_id),
+  CONSTRAINT fk_snapshot_obs_observation FOREIGN KEY (observation_id) REFERENCES observation(observation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_as_cs;
 ```
 
+`data_state.input_seq` tăng 1 trong **cùng transaction** với mỗi lô có dòng mới hoặc quyết
+định admin; run ghi lại `input_seq` của tập đầu vào nó đọc. `sign_snapshot_observation` giữ
+liên kết lần thấy → tấm **của từng run**, để chi tiết/bằng chứng năm cũ không đọc
+`observation.target_sign_id` hiện tại.
+
+| Trong `sign_snapshot` (đóng theo run) | Được đọc thêm lúc phục vụ |
+| --- | --- |
+| Loại, vị trí, location_method, ray_count/residual, feature, hướng mặt, road_ref, trạng thái, nguồn xác nhận trước, replacement_sign_id, điểm và cặp, lần thấy cuối, lý do mâu thuẫn | Dữ liệu bất biến lọc theo run: observation/ảnh qua `sign_snapshot_observation`; sign_type theo classes_version của run; review/history có effective_at và decided_at trước cutoff **và** input_seq không quá run. Không đọc bảng `sign` hiện tại cho năm đã chọn |
+
 Quy trình dựng: tạo `snapshot_run` trạng thái `building` → job gọi `core` trên observation
-trước cutoff → ghi mọi dòng `sign_snapshot` → trong **một transaction** đổi run mới sang
-`ready` và run `ready` cũ cùng năm sang `superseded`. API chỉ đọc run `ready` mới nhất nên
-không bao giờ thấy bản dựng dở. Run cũ giữ để truy vết; xóa định kỳ là việc vận hành.
+trước cutoff → ghi mọi dòng `sign_snapshot` và `sign_snapshot_observation` → trong **một
+transaction** đổi run mới sang `ready` và run `ready` cũ cùng năm sang `superseded`, chỉ khi
+`input_seq` của run mới không nhỏ hơn run đang `ready` (chặn công bố sai thứ tự). Lỗi khi
+dựng → `failed` + `error_code`, run cũ vẫn phục vụ. API mặc định đọc run `ready` mới nhất;
+phiên có `snapshot_run_id` đọc đúng run đó kể cả khi đã `superseded`. Run cũ giữ để truy
+vết; xóa định kỳ là việc vận hành, không xóa run có thể còn phiên đọc.
+
+Khởi động lại: mọi run `building` sang `failed`; năm nào có run `ready` với `input_seq` nhỏ
+hơn `data_state.input_seq` (hoặc chưa có run) thì dựng lại. Cách này bắt cả trường hợp đã
+commit lô nhưng chưa kịp tạo run.
 Dựng lại toàn bộ một năm cho tuyến demo đủ nhanh để chạy đồng bộ sau mỗi lô; chỉ khi đo thấy
 chậm mới chuyển sang dựng riêng các sign bị ảnh hưởng.
 
@@ -438,4 +480,7 @@ rồi lọc chính xác như 1.0. `sign` vẫn là cache hiện tại cho admin;
 
 - Thêm bảng `snapshot_run` và `sign_snapshot` (có SPATIAL index), thay ghi chú 1.1 về snapshot trong bộ nhớ.
 - Ghi `location_method` và `facing_source` cho từng biển trong snapshot.
+- Thêm `data_state.input_seq`, `snapshot_run.input_seq/error_code`, trạng thái `failed`; công bố chỉ khi input_seq không lùi.
+- `sign_snapshot` đóng thêm road_ref, replacement_sign_id, nguồn xác nhận trước, ray_count/residual, feature;
+  thêm `sign_snapshot_observation` liên kết lần thấy theo run.
 - Chưa có migration thực thi; DDL vẫn cần chạy thử trên MySQL 8.

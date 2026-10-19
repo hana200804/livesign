@@ -19,6 +19,42 @@ Các đoạn `text` là pseudocode, không phải script chạy.
 
 Không dùng nhãn mốc để chọn tham số, định vị, gộp hoặc xác nhận biển. Dữ liệu sau
 cutoff không được dùng để sửa tọa độ/cluster/ảnh bằng chứng của snapshot cũ.
+Ngoại lệ duy nhất là **vị trí** feature Mapillary (mục Liên kết feature bên dưới).
+
+## Gom lần thấy cùng tấm trước khi định vị
+
+Giao tia cần biết các seen thuộc cùng tấm; gộp cần vị trí và hướng mặt; hướng tổng hợp
+cần nhiều seen. Để không vòng, `core` gom theo bốn bước; hai bước đầu **không** cần vị
+trí hay hướng mặt của biển.
+
+| Bước | Đầu vào | Luật | Đầu ra |
+| --- | --- | --- | --- |
+| 1. Theo feature | seen có `source_sign_id`, hoặc đúng một feature không hòa trong `feature_candidates` | Cùng sequence, cùng loại, cùng feature → cùng track | Track có feature |
+| 2. Theo vết trong sequence | Seen còn lại của một sequence, sắp theo captured_at, image_id | Nối seen j vào track đang mở có seen i gần nhất trước nó khi cùng loại, `Δt ≤ grouping.track_max_gap_s`, camera dịch ≤ `grouping.track_max_gap_m`, và tia j giao tia i phía trước cả hai camera (λ>0) trong `visibility_max_distance_m`. Hai tia gần song song (dưới `min_ray_crossing_deg`) thì cần `off_deg` đổi cùng chiều và bbox không nhỏ đi | Track |
+| 3. Định vị track | Track | Giao tia nếu ≥2 tia đạt → feature của track → camera_proxy; hướng mặt từ các tia của track (mục Hướng mặt) | Track có vị trí, facing |
+| 4. Gộp vào registry | Track đã định vị, mọi sequence/người/năm trước cutoff | Luật mục Gộp biển; sau gộp giải lại giao tia trên mọi tia của sign, giữ neo registry và sign_id | target_sign_id |
+
+- **Không cùng track:** hai bbox cùng loại trong cùng ảnh (cannot-link); các seen trong
+  một track bầu khác feature thì track không dùng feature.
+- **Mơ hồ:** seen đạt điều kiện với ≥2 track ngang nhau → mở track mới, ghi
+  `grouping_ambiguous` trong provenance, không chọn ngẫu nhiên. Track một seen là `single_view`.
+- **Cặp bằng chứng:** track nằm trong một sequence nên chỉ của một creator; cặp
+  (creator, năm) vẫn tính ở sign sau bước 4, track không thay đơn vị bằng chứng.
+- Kết quả chỉ phụ thuộc thứ tự sắp cố định ở bước 2, nên dựng lại cả năm ra cùng track.
+
+```text
+VỚI mỗi sequence, seen trước cutoff sắp theo captured_at, image_id, observation_id:
+  NẾU seen có feature không mơ hồ: gán track theo feature
+  NGƯỢC LẠI: tìm track mở cùng loại thỏa Δt, Δcamera và giao tia với seen cuối của track
+    đúng một track → nối; ≥2 ngang nhau → track mới + grouping_ambiguous; không có → track mới
+  ĐÓNG track khi quá track_max_gap_s không có seen cùng loại
+VỚI mỗi track: định vị (giao tia → feature → camera_proxy), ước lượng facing
+GỘP track vào registry theo luật Gộp biển; giải lại vị trí sign trên mọi tia đã gộp
+```
+
+**Đã chốt 19/10:** áp dụng bốn bước trên; `track_max_gap_s=3`, `track_max_gap_m=30` là
+**dự kiến**. Kiểm trên đoạn 500 m có nhãn tay theo tấm: độ thuần/đủ của track, số track
+mơ hồ, ca hai tấm cùng loại cùng ảnh không bị nhập.
 
 ## Ước lượng vị trí biển
 
@@ -44,7 +80,9 @@ phần dư; feature có sẵn; bbox không đủ để suy độ sâu.
 | Dòng so sánh **PB** (cách làm phổ biến hiện nay) | GPS của ảnh có lần thấy | Cùng loại + 20 m, không xét hướng |
 
 Vì cả bốn bậc dùng chung định vị và luật gộp, chênh lệch giữa B0–B3 vẫn chỉ do độ đa
-dạng nguồn, độ mới và mâu thuẫn. Chênh lệch giữa PB và B0 cho thấy tác dụng của định vị.
+dạng nguồn, độ mới và mâu thuẫn. Chênh lệch PB→B0 là tác dụng của **cả gói**: định vị,
+gộp có xét hướng và loại biển chỉ có camera_proxy khỏi D. Muốn tách từng phần phải chạy
+thêm các dòng kiểm soát ở [evaluation.md](evaluation.md).
 Lý do không dùng vị trí camera cho thang: camera thường cách biển 5–35 m (PoC Trần Phú),
 còn khớp mốc dùng `ground_truth.match_radius_m=5`.
 
@@ -55,9 +93,11 @@ hiển thị D của B0–B3**; biển mốc tương ứng tính là thiếu ở
 **Liên kết feature Mapillary:** dùng `source_sign_id` nếu lần thấy đã gắn sẵn; nếu không,
 lấy feature có loại ánh xạ được sang cùng mã (theo `mapillary_label_candidates`), nằm
 phía trước camera (λ>0), trong 30 m và cách tia nhìn ≤ `feature_link_max_ray_distance_m`.
-Nhiều feature đạt thì chọn gần tia nhất; hòa thì không liên kết. Giới hạn cần ghi trong quyển:
-vị trí feature do Mapillary tính từ toàn bộ ảnh tới hiện tại, nên với snapshot quá khứ chỉ
-dùng **vị trí**, không dùng feature để suy biển có tồn tại tại T; báo tỷ lệ sign định vị bằng feature.
+Nhiều feature đạt thì chọn gần tia nhất; hòa thì không liên kết. **Ngoại lệ dữ liệu tương lai,
+phải ghi trong quyển:** vị trí feature do Mapillary tính từ toàn bộ ảnh tới hiện tại và không có
+bản theo thời điểm, nên snapshot quá khứ chỉ dùng **vị trí**, không dùng feature để suy biển có
+tồn tại tại T. Báo tỷ lệ sign định vị bằng feature mỗi năm, và chạy dòng độ nhạy tắt
+`positioning.feature_fallback_enabled` để thấy kết quả phụ thuộc ngoại lệ này bao nhiêu.
 
 ### Giao tia: công thức và pseudocode
 
@@ -155,7 +195,7 @@ vẫn là giá trị dự kiến, chỉnh sau khi đo trên bộ mốc phát tri
 
 ## Gộp biển và giữ sign_id
 
-Đầu vào: seen hợp lệ có vị trí ước lượng, loại, hướng mặt (có thể thiếu), registry sign,
+Đầu vào: track đã định vị ở bước 3 (mục Gom lần thấy), loại, hướng mặt (có thể thiếu), registry sign,
 ảnh/cặp đồng xuất hiện. Đầu ra: target_sign_id, sign mới hoặc ca cần kiểm tra.
 Tham số: `geometry.merge_radius_m`, `geometry.merge_max_facing_diff_deg`.
 

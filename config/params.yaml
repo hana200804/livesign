@@ -50,6 +50,11 @@ positioning:
   max_condition_number: {value: 1000, unit: ratio, status: "dự kiến"} # Chặn nghiệm bình phương tối thiểu không ổn định; cần hiệu chỉnh trên tập phát triển.
   max_ray_residual_m: {value: 5, unit: m, status: "dự kiến"} # Ngưỡng phần dư vuông góc để thử lọc tia sai, không phải cam kết sai số tọa độ.
   bbox_physical_height_m: {value: null, unit: m, status: "dự kiến"} # Kích thước biển thật chưa biết nên chưa được suy khoảng cách tuyệt đối từ bbox.
+  feature_fallback_enabled: {value: true, status: "dự kiến"} # Dùng vị trí feature Mapillary (tính tới hiện tại) làm dự phòng; tắt để chạy dòng độ nhạy ngoại lệ dữ liệu tương lai.
+
+grouping:
+  track_max_gap_s: {value: 3, unit: s, status: "dự kiến"} # Gom seen cùng loại trong một sequence thành track khi hai ảnh cách nhau không quá mức này; kiểm trên 500 m.
+  track_max_gap_m: {value: 30, unit: m, status: "dự kiến"} # Camera dịch không quá mức này giữa hai seen nối nhau; vượt thì mở track mới.
 
 facing:
   min_views: {value: 2, unit: observation, status: "dự kiến"} # Số tia seen tối thiểu để ước lượng hướng mặt; một tia chỉ là single_view, chưa dùng cho not_seen hay nhắc.
@@ -66,7 +71,7 @@ replay:
   max_gap_s: {value: 10, unit: s, status: "dự kiến"} # Khoảng trống lớn hơn mức này ngắt đoạn phát và tính tốc độ, cần đo trên sequence thật.
   alert_cooldown_s: {value: 15, unit: s, status: "dự kiến"} # Thời gian tối thiểu giữa hai nhắc cho cùng biển trong cùng phiên; chưa đủ để tự cho nhắc lại.
   alert_rearm_distance_m: {value: 80, unit: m, status: "dự kiến"} # Chỉ tái nhắc sau khi đã rời vùng và tới gần lại; reset rõ khi đổi chuyến/năm.
-  corridor_buffer_m: {value: 50, unit: m, status: "dự kiến"} # GET /trips/{trip_id}/signs trả biển trong khoảng này quanh trace để app lọc nhắc cục bộ.
+  corridor_buffer_m: {value: 50, unit: m, status: "dự kiến"} # GET /trips/{trip_id}/signs trả biển trong khoảng này quanh trace; biển ngoài vùng là biển chuyến không đi qua, không nhắc.
 
 ground_truth:
   match_radius_m: {value: 5, unit: m, status: "dự kiến"} # Bán kính khớp mốc, độc lập bán kính gộp 20 m; khóa trước khi chấm test.

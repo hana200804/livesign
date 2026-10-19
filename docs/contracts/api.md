@@ -474,7 +474,17 @@ báo riêng là mô phỏng. Giữ kết quả trước/sau admin riêng theo h�
 
 ### Danh sách bổ sung 1.1
 
+**`POST /admin/reviews`** — bổ sung cho màn chi tiết candidate/unclear cần admin
+xác nhận thủ công; không tự đưa mọi candidate vào hàng chờ suspected_change.
+Request minh họa: `{"sign_id":"sign-demo-1","reason":"Mở kiểm tra thủ công"}`.
+Response 201: `{"review_id":"review-demo-manual","sign_id":"sign-demo-1","status":"pending","version":1}`.
+Nếu đã có review pending cùng sign, trả 200 ca đó thay vì tạo lặp. Không đổi sign.status
+khi chỉ mở ca; quyết định vẫn qua endpoint 1.0. Role admin, sign/evidence tồn tại;
+403 thiếu quyền, 404 không có sign. **Cần nhóm quyết:** duyệt lối mở ca thủ công
+này để dùng được confirmed_manual mà không giả tạo mâu thuẫn.
+
 - Thêm GET trips, trace/manifest, ảnh replay, sign detail/history và review detail.
+- Thêm POST admin/reviews để mở ca xác nhận thủ công; không đổi hàng chờ nghi.
 - Thêm hash/cutoff/cache cho representation; làm rõ lỗi trace không đủ thời gian.
 - Bổ sung provenance snapshot, version 409, watermark admin và môi trường demo dự kiến.
 - Không sửa nghĩa, tên cột, trạng thái, quyền hoặc endpoint 1.0.

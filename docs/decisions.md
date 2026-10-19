@@ -81,15 +81,15 @@ Repo là nguồn ưu tiên theo yêu cầu hiện tại. PDF ở gốc repo là 
 | Nội dung | PDF v3.2 ở gốc | Repo hiện tại dùng |
 | --- | --- | --- |
 | Tuyến chính | Trần Phú; Hoàn Kiếm là đối chứng | README/GeoJSON: lõi Hoàn Kiếm, tuyến khoảng 1,5 km còn candidate; Trần Phú chỉ PoC |
+| Bản đồ Android | PDF v3.2 trang 8 dùng MapLibre/OSM | android/README.md và decisions.md dùng Vietmap SDK + Map Matching; hình học OSM trong GeoJSON chỉ giúp chọn tuyến |
 | Nhãn nhìn được | Gán tay mẫu 200–300 ảnh | observation.md: model độc lập + audit 60 ảnh và mọi ảnh không chắc |
 | Danh mục/threshold | 10–15 loại, N dự kiến 2–3 | classes.yaml đã duyệt 12 mã; N/θ vẫn null, có proposed riêng |
 | Tổ chức thực hiện | PDF có phân công và lịch | Theo quyết định repo mới: không giao người sẵn, tài liệu thiết kế không dùng mã việc hoặc lịch theo kỳ |
 
 Giữ nguyên các ngưỡng đã chốt trong params. Những tham số thiết kế bổ sung đều
-`status: dự kiến`; chưa phải kết quả đo. Trạng thái repo lúc bắt đầu: nhánh
-`docs/chuan-bi`, commit `f0433eb`; PR nháp #21 do người dùng chỉ định đã được gắn vào
-chat, connector trả 404 khi đọc metadata, không suy ra PR không tồn tại. Lần này chỉ
-commit local, không push hoặc chỉnh nội dung PR.
+`status: dự kiến`; chưa phải kết quả đo. Bộ thiết kế căn cứ trạng thái repo trên
+nhánh `docs/chuan-bi`, commit nguồn `f0433eb`; phần hợp đồng 1.0 được giữ nguyên,
+các bổ sung đặt trong mục Thay đổi 1.1.
 
 ## Ba câu hỏi gửi GVHD trong v3.3
 

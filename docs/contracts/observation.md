@@ -198,3 +198,31 @@ cộng offset tile trước. Không đưa bbox normalized vào box_angle().
 - Làm rõ đổi tọa độ tensor/tile về bbox pixel toàn ảnh, không đổi quy ước góc.
 - Liên kết hợp đồng model/trace và cách tránh tăng bằng chứng do replay.
 - Giữ nguyên 10 dòng mẫu và mọi điều kiện seen/not_seen/unknown 1.0.
+
+## Thay đổi 1.2
+
+Theo [kiến trúc 1.2](../architecture.md), định vị biển chạy trong module `core` sau khi gom
+các lần thấy cùng tấm; batch AI không tự quyết vị trí cuối của biển.
+
+- Với `seen` từ batch AI: `sign_lon`, `sign_lat`, `sign_facing_deg` cấp trên là **gợi ý**
+  từ một ảnh hoặc `null`. `core` quyết `sign.location` theo thứ tự giao tia → feature Mapillary
+  → camera_proxy ([algorithms.md](../algorithms.md)). Không bắt batch AI điền các cột này.
+- Thêm `source_metadata.positioning.feature_candidates`: danh sách feature Mapillary cùng loại
+  ánh xạ được, phía trước camera, trong 30 m, gần tia nhìn — mỗi phần tử
+  `{source_sign_id, source_sign_type, lon, lat, ray_distance_m}`. `core` chọn theo luật liên kết
+  feature; batch AI không chọn thay.
+- `not_seen` được tạo ở **lượt 2**, sau khi đã có snapshot: `target_sign_id`, `sign_lon`,
+  `sign_lat`, `sign_facing_deg` chép từ biển trong snapshot cùng năm, thêm
+  `source_metadata.provenance.snapshot_run_id` để truy vết.
+
+```json
+{"positioning":{"method":null,"feature_candidates":[{"source_sign_id":"illustration:feature-1","source_sign_type":"regulatory--no-parking--g1","lon":105.84716,"lat":21.02554,"ray_distance_m":1.2}]}}
+```
+
+Ví dụ trên là giá trị `source_metadata` minh họa. `method=null` vì vị trí chưa được `core` quyết.
+
+### Danh sách bổ sung 1.2
+
+- Vị trí/hướng biển trong `seen` từ batch AI chỉ là gợi ý; `core` quyết vị trí cuối.
+- Thêm `positioning.feature_candidates` và `provenance.snapshot_run_id`.
+- Làm rõ not_seen được tạo ở lượt 2 sau snapshot.

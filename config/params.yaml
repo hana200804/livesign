@@ -66,6 +66,7 @@ replay:
   max_gap_s: {value: 10, unit: s, status: "dự kiến"} # Khoảng trống lớn hơn mức này ngắt đoạn phát và tính tốc độ, cần đo trên sequence thật.
   alert_cooldown_s: {value: 15, unit: s, status: "dự kiến"} # Thời gian tối thiểu giữa hai nhắc cho cùng biển trong cùng phiên; chưa đủ để tự cho nhắc lại.
   alert_rearm_distance_m: {value: 80, unit: m, status: "dự kiến"} # Chỉ tái nhắc sau khi đã rời vùng và tới gần lại; reset rõ khi đổi chuyến/năm.
+  corridor_buffer_m: {value: 50, unit: m, status: "dự kiến"} # GET /trips/{trip_id}/signs trả biển trong khoảng này quanh trace để app lọc nhắc cục bộ.
 
 ground_truth:
   match_radius_m: {value: 5, unit: m, status: "dự kiến"} # Bán kính khớp mốc, độc lập bán kính gộp 20 m; khóa trước khi chấm test.

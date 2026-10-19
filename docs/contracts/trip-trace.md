@@ -69,11 +69,11 @@ xe thành thông số camera đã đo.
 | Seek/đổi năm/chuyến | Hủy request cũ, tăng generation của phiên, reset chống nhắc và ghi log reset |
 | Ảnh tải chậm | Dừng hoặc bỏ frame có log; không gắn bbox ảnh cũ lên vị trí ảnh mới |
 | GPS bị tách đoạn | Dừng ở ranh giới, báo thiếu vết; không phát cảnh báo trong đoạn chưa có định vị hợp lệ |
-| Map matching | Giữ tọa độ gốc; tọa độ/road_ref đã khớp là lớp dẫn xuất riêng, ghi nguồn/phiên bản |
+| Map matching | Gọi cho **cả vết một lần** khi bắt đầu (chia đoạn nếu dài), không gọi từng điểm; giữ tọa độ gốc; tọa độ/road_ref đã khớp là lớp dẫn xuất riêng, ghi nguồn/phiên bản |
 | Mất mạng | Dùng trace/ảnh cache đã có nếu được phép, báo rõ; không giả đã gửi observation hoặc tải snapshot mới |
 
 Endpoint bổ sung ở [api.md](api.md): `GET /trips`, `GET /trips/{trip_id}/trace`,
-`GET /trips/{trip_id}/images/{image_id}`. Response trace JSONL có hash/manifest;
+`GET /trips/{trip_id}/images/{image_id}`, `GET /trips/{trip_id}/signs` (1.2). Response trace JSONL có hash/manifest;
 ảnh trả bytes, không để app tự dùng Mapillary token chung trong URL.
 
 Quan sát tạo ra dùng `captured_at=t`, `camera_lon=lon`, `camera_lat=lat`,

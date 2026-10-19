@@ -13,6 +13,10 @@ file repo trong [bảng đối chiếu](preparation-audit.md), và phản hồi 
 | Định vị cho thang B0–B3 | Cả B0–B3 dùng chung định vị giao tia → feature Mapillary (camera_proxy không vào tập chấm, đếm riêng); cách làm phổ biến (vị trí ảnh + gộp 20 m) là dòng so sánh PB riêng | Nhóm qua người dùng | 19/10 |
 | Hướng mặt biển | Ước lượng bằng trung bình tròn hướng ngược tia của các lần thấy ([algorithms.md](algorithms.md)); `facing.min_views=2`, `min_resultant_length=0,5` còn dự kiến | Nhóm qua người dùng | 19/10 |
 | Đệm độ trễ khi nhắc | `D = speed × (warning_min_lead_s + warning_latency_buffer_s)`; đệm 1,5 s còn dự kiến, chỉnh sau khi đo; API 1.1 đã ghi | Nhóm qua người dùng | 19/10 |
+| Thuật toán một nơi | Định vị, hướng mặt, gộp, điểm, vòng đời viết một lần trong module Java `core` không phụ thuộc Spring; dịch vụ và CLI đánh giá cùng dùng; script Python chỉ chấm điểm ([architecture.md](architecture.md)) | Nhóm qua người dùng | 19/10 |
+| Snapshot dựng sẵn | Bảng `snapshot_run` + `sign_snapshot`, dựng sau mỗi lô/quyết định admin; API chỉ đọc run `ready` mới nhất | Nhóm qua người dùng | 19/10 |
+| Phát lại không gọi mạng từng điểm | `GET /trips/{trip_id}/signs` một lần + Map Matching cả vết một lần; app lọc biển phía trước cục bộ; `/signs/ahead` để test đối chiếu | Nhóm qua người dùng | 19/10 |
+| Định vị sau khi gom lần thấy | Batch AI gửi tư thế camera, bbox, `feature_candidates`; `core` định vị sau khi gom; not_seen tạo ở lượt 2 sau snapshot | Nhóm qua người dùng | 19/10 |
 | Danh mục | 12 mã trong classes.yaml; đã đối chiếu phụ lục B/C/E QCVN chính thức; nguồn nhãn train còn mở | Nhóm duyệt có điều kiện; đã hoàn tất đối chiếu QCVN | 19/10 |
 | Vùng ứng viên | Giữ vùng quanh ba ô rank đầu Hoàn Kiếm; **chưa chốt tuyến demo** | Nhóm qua người dùng | 19/10 |
 | N và θ | Giữ **null** ở giá trị vận hành; chỉ ghi ứng viên N=3, θ=0,75. V3.3 nêu N dự kiến 2 và dải 2–3, chưa phải chốt | Nhóm qua người dùng | 19/10 |

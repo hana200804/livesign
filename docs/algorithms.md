@@ -30,6 +30,10 @@ cutoff không được dùng để sửa tọa độ/cluster/ảnh bằng chứn
 | Giao tia bình phương tối thiểu | ≥2 lần thấy cùng tấm, camera GPS + heading + bbox + thông số ảnh → vị trí, phần dư, điều kiện nghiệm | Không cần biết kích thước biển; nhạy GPS/góc, sai liên kết tấm, gần song song | Phương án chính của **thử nghiệm định vị nâng cao**, chưa bật mặc định |
 | Camera + khoảng cách từ bbox | GPS camera + hướng tia + tiêu cự + kích thước vật lý biết trước → vị trí | Một ảnh cũng tính được; biển nghiêng/kích thước chưa biết làm sai khoảng cách lớn | Chỉ thử khi có hiệu chuẩn; thiếu kích thước → chưa đủ dữ liệu |
 
+**Chạy ở đâu (kiến trúc 1.2):** toàn bộ phần định vị, hướng mặt, gộp và điểm nằm trong module
+Java `core`, chạy sau khi gom các lần thấy cùng tấm; batch AI chỉ gửi tư thế camera, bbox và
+`feature_candidates`. Dịch vụ và CLI đánh giá gọi cùng `core`.
+
 **Đã chốt (19/10):** thứ tự định vị là **giao tia → feature Mapillary → camera_proxy**
 (`positioning.primary_method`, `fallback_order` trong params). Lý do: giao tia kiểm tra được
 phần dư; feature có sẵn; bbox không đủ để suy độ sâu.
@@ -352,7 +356,8 @@ có lô mới**; đọc snapshot cũng phải kiểm phiên bản/năm. Không c
 
 n dòng/sign, p cặp: hash gom O(n), sắp theo thời gian O(p log p), bộ nhớ O(n+p)
 nếu giữ provenance, O(p) nếu stream; kiểm (c) thêm ứng viên không gian c.
-Snapshot key gồm evaluation_year, cutoff, params_version **và hash config**, model_version,
+Kết quả cho sản phẩm được lưu thành một lần chạy `snapshot_run` + `sign_snapshot`
+([db-schema.md](contracts/db-schema.md), Thay đổi 1.2). Snapshot key gồm evaluation_year, cutoff, params_version **và hash config**, model_version,
 classes_version, dataset/registry version, chế độ trước/sau admin. Khóa registry và
 tọa độ phải được dựng từ dữ liệu trước cutoff, không chỉ lọc score sau khi đã gộp tương lai.
 
@@ -374,6 +379,10 @@ APP sắp gần trước; với mỗi sign chưa nhắc trong lần tiếp cận
 CHỈ tái nhắc sau khi rời ≥rearm_distance và trở lại, đồng thời đã qua cooldown
 ĐỔI chuyến/năm/seek về trước: mở phiên mới có log reset, không trộn số đo hai phiên
 ```
+
+Khi phát lại, app chạy đúng pseudocode trên **cục bộ** với danh sách biển từ
+`GET /trips/{trip_id}/signs` và tham số `alert_params` trong response; server không bị gọi theo
+từng điểm. `/signs/ahead` là bản tham chiếu cho test đối chiếu.
 
 Khóa chống lặp `(replay_session, evaluation_year, sign_id)`; không dùng mỗi class
 vì hai biển cùng loại vẫn là hai tấm. Chuyển trạng thái cùng sign cập nhật banner,

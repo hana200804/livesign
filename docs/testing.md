@@ -139,7 +139,12 @@ manifest ảnh đã kiểm trước/sau và nguồn công khai, vẫn giữ quy�
 lịch sử tách khỏi đánh giá tự động thật. Không đưa fixture N=3/θ=0,75 vào vận hành
 như ngưỡng nhóm đã chốt.
 
-## CI tối thiểu — tùy chọn, chưa tạo workflow
+## CI tối thiểu — phần bổ sung đề xuất
+
+Repo hiện đã có [ci.yml](../.github/workflows/ci.yml): quét bí mật/file lớn,
+pytest phần AI, cú pháp Node, cùng các job Backend/Android tự kiểm sự tồn tại
+project trước khi chạy. Lần thiết kế này không tạo/sửa workflow hoặc hook.
+Bảng dưới là gate cần bổ sung/hoàn thiện khi triển khai, không nhận là CI chưa tồn tại.
 
 | Gate | Điều kiện bật / kết quả |
 | --- | --- |
@@ -148,6 +153,8 @@ như ngưỡng nhóm đã chốt.
 | Android | Khi project tồn tại: compile và unit preprocess/decoder; máy thật đo riêng |
 | Dữ liệu cấm | Không token/.env thật/model/ảnh/large dataset; giữ kiểm tra Git sẵn có nếu repo đã có |
 
-Không viết workflow giả báo build thành công khi backend/android chưa khởi tạo.
-**Cần nhóm quyết:** bật CI build sau khi có project, trước mắt kiểm docs/data; lý do
-là gate cần kiểm thứ thật sự tồn tại, không tạo cấu hình đỏ vì thư mục chỉ có README.
+Không nhận job đã skip vì thiếu project là backend/app đã build đạt.
+**Cần nhóm quyết:** giữ gate theo project hiện có, bổ sung docs/data trước; lý do
+là gate phải kiểm thứ thật sự tồn tại. CI Android hiện khai Java17, trong khi
+setup.md chọn JDK21: cần thống nhất sau khi chọn Android Gradle Plugin/Gradle,
+không tự đổi checklist hoặc workflow chỉ để làm chúng trông giống nhau.

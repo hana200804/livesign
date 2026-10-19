@@ -132,7 +132,7 @@ không giả chúng đã nghi thay đổi để dùng hàng chờ hiện có.
 | Truy vết | 100% dòng được tính điểm có ảnh/creator/time/model và target liên kết hợp lệ | Thiếu không vào cặp, metadata_only lưu audit riêng |
 | Tái lập | Corpus/GT/model/config/registry/commit/hash bất biến | Cùng manifest cho cùng kết quả, kể cả thứ tự lô hoặc công bố giới hạn registry |
 
-Không coi D=v×5 s bảo đảm nhắc kịp sau network/TTS; hạn chế đã nêu trong thuật toán.
+D=v×(5 s+đệm) chỉ bù độ trễ trung bình, chưa bảo đảm mọi lượt nhắc kịp; hạn chế đã nêu trong thuật toán.
 Không thêm ngưỡng FPS, pin hoặc độ chính xác 2–3 m như số đã đo.
 **Cần nhóm quyết:** khóa chỉ tiêu FPS/latency/pin và tuyến cụ thể sau pilot; đề xuất
 dùng protocol evaluation.md trước khi đặt ngưỡng để có căn cứ máy thật. Các mục

@@ -181,7 +181,7 @@ không lấy `detector_confidence` làm điểm này.
 không có thì `road_match_status=unverified` và chưa được coi đạt kiểm tra đường song song.
 Đề xuất Backend dùng vết map matching của Vietmap để chọn đúng đoạn/hướng; chỉ lọc
 khoảng cách + góc không chứng minh đã loại được biển trên đường nhánh.
-Khoảng cách nhắc dự kiến `speed_mps × warning_min_lead_s`; tách với **30 m** của điều kiện nhìn được.
+Khoảng cách nhắc dự kiến `speed_mps × warning_min_lead_s` (1.1: cộng thêm đệm, xem Thay đổi 1.1); tách với **30 m** của điều kiện nhìn được.
 Chọn biển trong khoảng cách nhắc, `angle_diff(bearing(xe→biển),heading_deg)` không quá
 `ahead_max_bearing_diff_deg`, và `angle_diff(sign_facing_deg,bearing(biển→xe))`
 không quá `ahead_max_facing_diff_deg` (hai ngưỡng dự kiến 45° trong params).
@@ -472,7 +472,15 @@ và nhãn “mô phỏng quyết định lịch sử” trên mọi màn. Không
 query trong đánh giá thật. Ảnh trước/sau có thể thật nhưng quyết định tái diễn vẫn
 báo riêng là mô phỏng. Giữ kết quả trước/sau admin riêng theo hợp đồng 1.0.
 
+### Đệm độ trễ khi nhắc
+
+`/signs/ahead` tính `warning_distance_m = speed_mps × (warning_min_lead_s + warning_latency_buffer_s)`
+(params, đệm dự kiến 1,5 s), thay cho công thức 1.0 không có đệm. Ví dụ 1.0 với
+speed 11,11 m/s cho 55,55 m sẽ thành 72,22 m. Response không đổi trường; client không tự cộng đệm lần nữa.
+
 ### Danh sách bổ sung 1.1
+
+- Khoảng cách nhắc của `/signs/ahead` cộng thêm `warning_latency_buffer_s` (nhóm chốt 19/10).
 
 Manifest Accept JSON của trace được bổ sung `frames_metadata`, object theo image_id
 chỉ chứa các frame trước cutoff: focal, is_pano, image_width_px, image_height_px,

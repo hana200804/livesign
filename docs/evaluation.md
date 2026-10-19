@@ -198,7 +198,7 @@ cách Euclid/velocity để chứng minh cảnh báo kịp.
 
 **Cần nhóm quyết:** khóa protocol ít nhất 3 lượt ở 1x, định nghĩa t_gặp/TTS và ngưỡng
 FPS/độ trễ/pin sau phép đo pilot; lý do là target 5 s không thay cho số đo end-to-end.
-D=v×5 s có thể cho lead<5 sau API/lấy mẫu; báo tỷ lệ trễ thật, không sửa công thức
+D=v×(5 s+đệm) chỉ bù độ trễ trung bình; báo tỷ lệ nhắc trễ thật, không sửa công thức
 chỉ trong script chấm để mọi lượt thành kịp.
 
 ## Phân tích thất bại

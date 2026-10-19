@@ -11,6 +11,8 @@ file repo trong [bảng đối chiếu](preparation-audit.md), và phản hồi 
 | Phạm vi lần chuẩn bị | Chỉ hợp đồng, config, khung, tài liệu; không code tính năng, issue, khởi tạo project; đưa lên một PR nháp để cả nhóm xem | Nhóm qua người dùng | 19/10 |
 | Phân công | Không chia việc sẵn; mỗi người tự nhận việc, ghi tên vào issue/PR khi bắt đầu; không báo cáo theo tuần | Nhóm qua người dùng | 19/10 |
 | Định vị cho thang B0–B3 | Cả B0–B3 dùng chung định vị giao tia → feature Mapillary (camera_proxy không vào tập chấm, đếm riêng); cách làm phổ biến (vị trí ảnh + gộp 20 m) là dòng so sánh PB riêng | Nhóm qua người dùng | 19/10 |
+| Hướng mặt biển | Ước lượng bằng trung bình tròn hướng ngược tia của các lần thấy ([algorithms.md](algorithms.md)); `facing.min_views=2`, `min_resultant_length=0,5` còn dự kiến | Nhóm qua người dùng | 19/10 |
+| Đệm độ trễ khi nhắc | `D = speed × (warning_min_lead_s + warning_latency_buffer_s)`; đệm 1,5 s còn dự kiến, chỉnh sau khi đo; API 1.1 đã ghi | Nhóm qua người dùng | 19/10 |
 | Danh mục | 12 mã trong classes.yaml; đã đối chiếu phụ lục B/C/E QCVN chính thức; nguồn nhãn train còn mở | Nhóm duyệt có điều kiện; đã hoàn tất đối chiếu QCVN | 19/10 |
 | Vùng ứng viên | Giữ vùng quanh ba ô rank đầu Hoàn Kiếm; **chưa chốt tuyến demo** | Nhóm qua người dùng | 19/10 |
 | N và θ | Giữ **null** ở giá trị vận hành; chỉ ghi ứng viên N=3, θ=0,75. V3.3 nêu N dự kiến 2 và dải 2–3, chưa phải chốt | Nhóm qua người dùng | 19/10 |
@@ -30,8 +32,6 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 
 | Quyết định | Đề xuất / dữ liệu cần có | Hạn dự kiến |
 | --- | --- | --- |
-| **Ước lượng hướng mặt biển** (review 19/10) | Trước đây không có thuật toán nào sinh `sign_facing_deg`, trong khi gộp, khớp mốc, not_seen và nhắc đều cần. Đề xuất trong [algorithms.md](algorithms.md): trung bình tròn hướng ngược tia, `facing.min_views=2`, `min_resultant_length=0,5` dự kiến | Trước code phần gộp |
-| **Đệm độ trễ khi nhắc** (review 19/10) | `D = speed × 5 s` không chừa thời gian cho API, Map Matching, TTS → nhắc thường dưới 5 s. Đề xuất thêm `warning_latency_buffer_s` (khoảng 1–2 s, cần đo) và đổi thành `D = speed × (5 + đệm)`; đây là đổi hợp đồng API nên cần nhóm đồng ý | Trước code `/signs/ahead` |
 | Tuyến demo cụ thể ~1,5 km | Xem GeoJSON ứng viên; kiểm tra chuỗi ảnh đi theo đường thật, hai hướng có ảnh khi có thể; xem ảnh thay đổi, không lấy centroid làm tim đường | 25/10 |
 | N, θ và θ_thấp | Ứng viên 3 / 0,75 / 0,40; đo phân bố cặp và precision/coverage trước mốc test; N=1 chỉ là fallback cần nhóm duyệt lại | 25/10, trước triển khai tự xác nhận |
 | H, K, hệ số giảm | Giá trị thử H=2 năm, K=2 cặp, base=0,5; xác nhận trên dữ liệu phát triển, không tune trên tập chấm | Trước khóa thí nghiệm |
@@ -50,7 +50,7 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Cặp chỉ có ngày | **Cần nhóm quyết:** coi ngày là khoảng thời gian; chỉ kết luận K cặp cuối âm khi mọi thứ tự phù hợp đều cho kết quả đó, tránh suy thứ tự từ ID | Trước viết mâu thuẫn |
 | Ưu tiên trạng thái | **Cần nhóm quyết:** mâu thuẫn trước cũ; giữ nguồn xác nhận khi phục hồi; θ chỉ để vào xác nhận, θ_thấp để nghi; candidate có thể nghi khi đủ chứng cứ | Trước viết vòng đời |
 | Kiểm tra âm tự động | **Cần nhóm quyết:** chỉ âm khi kiểm tra độc lập đã audit; ngưỡng nét/che cần đo, thiếu kiểm tra trả unknown để tránh âm giả | Trước bật B3 |
-| Chống nhắc và liên kết đường | **Cần nhóm quyết:** chống lặp theo lần tiếp cận (15 s/80 m dự kiến), thống nhất road_ref Vietmap–CSDL; giữ D=v×5 s và đo hạn chế trễ trước khi xin thêm đệm | Trước viết cảnh báo |
+| Chống nhắc và liên kết đường | **Cần nhóm quyết:** chống lặp theo lần tiếp cận (15 s/80 m dự kiến), thống nhất road_ref Vietmap–CSDL; D=v×(5 s+đệm), đo trễ thật để chỉnh đệm | Trước viết cảnh báo |
 | Gói model cho app | **Cần nhóm quyết:** thử input 640 + float16 weights trước, đối chiếu 416/int8 bằng số đo và parity; tensor thực/exporter version phải có manifest để tránh giải mã nhầm | Trước bàn giao model |
 | NMS model | **Cần nhóm quyết:** NMS theo lớp ở client với confidence 0,25/IoU 0,45 dự kiến, khóa bằng tập phát triển, giữ nhiều loại cùng cột | Trước đóng model manifest |
 | Chuẩn replay và tốc độ | **Cần nhóm quyết:** tốc độ theo đoạn GPS/thời gian gốc, gap >10 s hoặc bước >40 m/s tách đoạn, heading camera thiếu để null, mặc định 1x; các ngưỡng cần đo | Trước chuẩn hóa trace |

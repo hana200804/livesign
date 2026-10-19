@@ -23,7 +23,8 @@ geometry:
   ahead_max_facing_diff_deg: {value: 45, unit: degree, status: "dự kiến"} # Hướng mặt biển lệch hướng từ biển về xe tối đa 45°; thiếu hướng thì chưa đủ điều kiện nhắc.
   perspective_frame_keep: {value: 0.85, unit: ratio, status: "dự kiến"} # Giữ vùng giữa 85% nửa góc ngang, bắt nguồn PoC; không thay thế kiểm tra nhìn được.
   default_focal: {value: 0.8, unit: normalized_long_edge, status: "đã chốt"} # Khớp geometry.py; chỉ fallback hình học, không đủ để tạo bằng chứng âm khi thiếu camera.
-  warning_min_lead_s: {value: 5, unit: s, status: "đã chốt"} # Mục tiêu đánh giá nhắc kịp của v3.3; khoảng cách ứng viên bằng tốc độ m/s nhân 5.
+  warning_min_lead_s: {value: 5, unit: s, status: "đã chốt"} # Mục tiêu đánh giá nhắc kịp của v3.3; khoảng cách nhắc cộng thêm warning_latency_buffer_s.
+  warning_latency_buffer_s: {value: 1.5, unit: s, status: "dự kiến"} # Nhóm chốt 19/10 dùng đệm: D = speed × (warning_min_lead_s + đệm) để bù API, Map Matching, TTS; giá trị chỉnh sau khi đo độ trễ thật.
 
 evaluation:
   years_T: {value: [2023, 2024, 2025], unit: year, status: "đã chốt"} # Ba bản đồ ở hết mỗi năm, so với bộ mốc của chính năm đó.

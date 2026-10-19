@@ -146,9 +146,8 @@ Hệ quả cho các thuật toán khác:
   tạo not_seen hay nhắc cho tới khi đủ `facing.min_views`.
 - Dòng PB (cách làm phổ biến) gộp theo loại + 20 m, **không xét hướng**; thang B0–B3 xét hướng như trên.
 
-**Cần nhóm quyết:** dùng ước lượng trên; `facing.min_views=2`, `min_resultant_length=0,5`
-là dự kiến, cần đo trên bộ mốc phát triển. Nếu không chấp nhận, phải chọn nguồn hướng
-khác, vì khi facing luôn null thì không gộp tự động, không khớp mốc theo hướng và app không nhắc.
+**Đã chốt (19/10):** dùng ước lượng trên. `facing.min_views=2`, `min_resultant_length=0,5`
+vẫn là giá trị dự kiến, chỉnh sau khi đo trên bộ mốc phát triển.
 
 ## Gộp biển và giữ sign_id
 
@@ -368,7 +367,7 @@ banner/TTS, hoặc trạng thái không đủ điều kiện. Tham số: `warnin
 ```text
 GIỮ timestamp/GPS gốc; map match để xác định đoạn đường, không thay người chụp
 GỌI /signs/ahead với lon, lat, heading_deg, speed_mps, loại xe, năm, road_ref
-SERVER tính D=speed_mps×warning_min_lead_s; speed=0 thì items rỗng
+SERVER tính D=speed_mps×(warning_min_lead_s+warning_latency_buffer_s); speed=0 thì items rỗng
 TÌM biển trong D mét, cùng đường phù hợp, hướng tới biển và mặt biển đạt ngưỡng
 LỌC lớp áp dụng xe; bỏ candidate/removed/replaced; gắn nhãn unclear/suspected_change
 APP sắp gần trước; với mỗi sign chưa nhắc trong lần tiếp cận: hiện banner và TTS
@@ -381,11 +380,12 @@ vì hai biển cùng loại vẫn là hai tấm. Chuyển trạng thái cùng si
 không tự nói lại liên tục. Biển thay mới có sign_id khác. Mất mạng không nói dữ liệu
 cũ như đã xác minh mới; chỉ dùng snapshot cache cùng năm/version và báo rõ mất mạng.
 
-Ví dụ speed=10 m/s, min_lead=5 s → D=50 m. Biển 45 m, hướng tới 5° so với xe 0°,
-facing=180°, bearing ngược=185°, xe car thuộc lớp → có thể nhắc; lead=4,5 s,
-**chưa đạt ≥5 giây**. Biển 55 m chưa vào kết quả dù cho lead=5,5 s. Do D hiện bằng
-đúng 5 giây, lấy mẫu/API/TTS có thể làm nhắc trễ. Không tự thêm hệ số đệm làm đổi hợp
-đồng; đo tỷ lệ nhắc kịp và ghi rõ hạn chế, đề xuất đệm chỉ qua quyết định bổ sung.
+Ví dụ speed=10 m/s, min_lead=5 s, đệm=1,5 s → D=65 m. Biển 60 m, hướng tới 5° so với xe 0°,
+facing=180°, bearing ngược=185°, xe car thuộc lớp → nhắc khi còn 6,0 s; trừ 1,5 s trễ
+API/TTS vẫn còn 4,5 s, **chưa đạt ≥5 giây**. Biển 64 m: 6,4 s − 1,5 s = 4,9 s, vẫn hụt.
+Chỉ biển vừa lọt vào D (≈65 m) mới còn đúng 5 s, nên đệm chỉ bù được độ trễ trung bình;
+lấy mẫu GPS thưa vẫn làm nhắc trễ. Đo độ trễ end-to-end thật rồi chỉnh
+`warning_latency_buffer_s` (đã chốt dùng đệm 19/10, giá trị 1,5 s còn dự kiến).
 
 **Cần nhóm quyết:** dùng chống lặp theo lần tiếp cận như trên (15 s/80 m là dự kiến);
 đo đủ trễ trước khi đề nghị đệm khoảng cách. Cần thống nhất road_ref của Vietmap với

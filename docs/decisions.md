@@ -59,6 +59,10 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Chứng cứ admin đã duyệt | **Cần nhóm quyết:** lưu watermark tập chứng cứ trong history, giữ điểm/âm gốc và chỉ mở lại ca khi có bằng chứng mới để tránh vòng lặp keep | Trước triển khai quyết định admin |
 | Demo quyết định lịch sử | **Cần nhóm quyết:** CSDL demo riêng, manifest scenario_id và nhãn mô phỏng; không bỏ kiểm decided_at trong đánh giá thật | Trước chuẩn bị demo |
 | Lưu metadata frame | **Cần nhóm quyết:** thêm metadata trace vào trip, image lookup ở manifest bất biến ngoài git, chưa thêm bảng ảnh; đo trước khi tăng độ phức tạp CSDL | Trước migration CSDL |
+| Split và phiên bản dataset | **Cần nhóm quyết:** khóa nguồn/version sau kiểm đếm, giữ nhóm trùng cùng split và test Hà Nội độc lập; chưa cam kết tỷ lệ khi thiếu count thực | Trước train |
+| Augment biển | **Cần nhóm quyết:** tắt flip ngang, chỉ thử augment không làm đổi nghĩa biển trên validation; không để thư viện tự đổi cấu hình giữa các run | Trước khóa train config |
+| Tiling batch | **Cần nhóm quyết:** so toàn ảnh với ô 640/chồng 20% trên cùng tập phát triển; chọn bằng recall/time, không suy tiling luôn tốt từ PoC | Trước chạy batch chính |
+| Đối sánh bài thử B3 | **Cần nhóm quyết:** đúng lớp/tấm + IoU≥0,50 với bbox gán độc lập, khóa trước thử để không nhầm tấm đúng hướng | Trước quyết định B3 |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

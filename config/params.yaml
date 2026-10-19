@@ -32,6 +32,7 @@ evaluation:
   retain_negative_evidence_min: {value: 0.50, unit: ratio, status: "đã chốt"} # Giữ B3 khi phát hiện ≥50% trên mẫu nhìn rõ đã kiểm tra, ảnh 2048px.
   drop_negative_evidence_below: {value: 0.30, unit: ratio, status: "đã chốt"} # Dưới 30% bỏ B3; khoảng [30%,50%) còn mở, không tự suy quyết định.
   human_audit_images: {value: 60, unit: image, status: "đã chốt"} # Người duyệt ngẫu nhiên 60 ảnh và mọi ảnh model gán nhãn không chắc.
+  detection_match_iou: {value: 0.50, unit: ratio, status: "dự kiến"} # Đề xuất khớp bbox đúng lớp trong bài thử B3, độc lập bán kính khớp mốc địa lý.
 
 workflow:
   classes_version: {value: "qcvn12-2026-10-19", status: "đã chốt"} # Khớp classes.yaml; bộ mã được nhóm duyệt, ánh xạ dataset vẫn chưa xác minh.

@@ -1,24 +1,121 @@
-# Danh sách lớp biển model sẽ học và cách gộp nhãn từ từng nguồn dữ liệu.
-# BẢN NHÁP: danh sách lớp đích chưa chốt (đề cương: 10–15 loại).
-# Tạm lấy 7 nhóm của Zalo AI 2020 làm điểm xuất phát; bổ sung / tách lớp khi đã xem các bộ Roboflow.
+# Nguồn duy nhất cho danh mục cả AI, Backend và Android.
+# Nhóm duyệt 12 mã ngày 19/10/2026; đã đối chiếu phụ lục B/C/E QCVN 41:2024/BGTVT.
+schema_version: "1.0"
+classes_version: "qcvn12-2026-10-19"
+selection_status: approved
+training_ready: false # Chưa kiểm đếm/đối chiếu annotation và giấy phép dataset.
+qcvn_source: "https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf"
+vehicle_types: [car, truck, motorcycle] # motorcycle ở bản demo = xe máy hai bánh.
 
 classes:
-  0: cam_nguoc_chieu        # Cấm ngược chiều
-  1: cam_dung_do            # Cấm dừng và đỗ
-  2: cam_re                 # Cấm rẽ
-  3: gioi_han_toc_do        # Giới hạn tốc độ
-  4: cam_khac               # Các biển cấm còn lại
-  5: nguy_hiem              # Biển nguy hiểm, cảnh báo
-  6: hieu_lenh              # Biển hiệu lệnh
+  0: P.102
+  1: P.103a
+  2: P.123a
+  3: P.123b
+  4: P.124a
+  5: P.128
+  6: P.130
+  7: P.131a
+  8: W.225
+  9: W.227
+  10: I.423a
+  11: I.407a
 
-# Ánh xạ: <nguồn> -> { id lớp gốc: id lớp đích }. Lớp gốc không có trong bảng sẽ bị bỏ.
-# id lớp gốc của Zalo 2020 ghi theo trí nhớ: đối chiếu với file annotation khi tải về.
+definitions:
+  P.102:
+    name_vi: Cấm đi ngược chiều
+    group: prohibition
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: B.2
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--no-entry--g1]
+  P.103a:
+    name_vi: Cấm xe ô tô
+    group: prohibition
+    vehicle_types: [car, truck]
+    qcvn_section: B.3
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--no-motor-vehicles-except-motorcycles--g2]
+  P.123a:
+    name_vi: Cấm rẽ trái
+    group: prohibition
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: B.23
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--no-left-turn--g1]
+  P.123b:
+    name_vi: Cấm rẽ phải
+    group: prohibition
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: B.23
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--no-right-turn--g1]
+  P.124a:
+    name_vi: Cấm quay đầu xe
+    group: prohibition
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: B.24
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--no-u-turn--g1]
+  P.128:
+    name_vi: Cấm sử dụng còi
+    group: prohibition
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: B.28
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--no-horn--g1]
+  P.130:
+    name_vi: Cấm dừng xe và đỗ xe
+    group: prohibition
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: B.30
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--no-stopping--g1]
+  P.131a:
+    name_vi: Cấm đỗ xe
+    group: prohibition
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: B.31
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--no-parking--g1]
+  W.225:
+    name_vi: Trẻ em
+    group: warning
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: C.25
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [warning--children--g1]
+  W.227:
+    name_vi: Công trường
+    group: warning
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: C.27
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [warning--roadworks--g1]
+  I.423a:
+    name_vi: Vị trí người đi bộ sang ngang
+    group: information
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: E.23a
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [information--pedestrians-crossing--g1]
+  I.407a:
+    name_vi: Đường một chiều
+    group: information
+    vehicle_types: [car, truck, motorcycle]
+    qcvn_section: E.7
+    needs_dataset_confirmation: [zalo2020, roboflow]
+    mapillary_label_candidates: [regulatory--one-way-straight--g1]
+
+# Chỉ điền mapping {nhãn_gốc: mã_QCVN} sau khi xem annotation thật và ảnh mẫu.
+# Không suy lớp chi tiết từ 7 nhóm của Zalo; nhãn không đủ chi tiết phải gán lại hoặc bỏ.
 sources:
   zalo2020:
-    1: 0
-    2: 1
-    3: 2
-    4: 3
-    5: 4
-    6: 5
-    7: 6
+    status: pending_annotation_and_license_check
+    mapping: {}
+  roboflow:
+    status: pending_dataset_version_and_license_check
+    mapping: {}
+  vnts_kaggle:
+    status: pending_annotation_and_license_check
+    mapping: {}

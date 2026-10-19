@@ -1,0 +1,541 @@
+{
+  "type": "FeatureCollection",
+  "bbox": [
+    105.8456,
+    21.02284,
+    105.8529397,
+    21.0272636
+  ],
+  "features": [
+    {
+      "type": "Feature",
+      "id": "hoankiem-candidate-road-alignment",
+      "bbox": [
+        105.8456154,
+        21.0228519,
+        105.8529397,
+        21.0272636
+      ],
+      "properties": {
+        "selection_status": "candidate",
+        "label_vi": "Ứng viên Hoàn Kiếm — chưa chốt tuyến demo",
+        "geometry_role": "candidate_road_alignment",
+        "routing_validated": false,
+        "note_vi": "Hình học bám đường OSM, nối các nút đường gần tâm ô rank theo thứ tự 5–1–2–3–4; top 3 là hạt giống, ô 4/5 mở rộng khoảng 1,5 km. Đây là tuyến đối chiếu dữ liệu; chưa kiểm tra một chiều, vết replay hay đủ ca thay đổi. Không dùng làm chỉ dẫn lái xe. Có phần đi lặp; length_m là tổng chiều dài polyline, unique_length_m là độ dài đường không lặp.",
+        "length_m": 1452.9,
+        "unique_length_m": 1370.4,
+        "length_method": "local planar approximation at latitude 21.026, not surveyed",
+        "streets_in_geometry_order": [
+          "Phố Quán Sứ",
+          "Phố Hai Bà Trưng",
+          "Phố Triệu Quốc Đạt",
+          "Phố Tràng Thi",
+          "Phố Bà Triệu",
+          "Phố Hai Bà Trưng",
+          "Phố Hàng Bài"
+        ],
+        "rank_source": "tools/mapillary-coverage/out/hoankiem-segments.csv",
+        "rank_order_1_based": [
+          5,
+          1,
+          2,
+          3,
+          4
+        ],
+        "seed_ranks": [
+          1,
+          2,
+          3
+        ],
+        "osm_way_ids": [
+          "1562157335",
+          "1562157334",
+          "1559851048",
+          "1560102536",
+          "1560102537",
+          "1560102534",
+          "1560102535",
+          "769778613",
+          "1559851047",
+          "1559851046",
+          "1223464161",
+          "1559851045",
+          "399606397",
+          "1562143969",
+          "684044681",
+          "707337132",
+          "1562143965",
+          "1562143966",
+          "1562143967",
+          "1562143968",
+          "838526718",
+          "1562143964",
+          "1559822567",
+          "1559822565",
+          "1559822566",
+          "11706198",
+          "1559822564",
+          "1564587994",
+          "707055568",
+          "1559801493",
+          "1551010888",
+          "1559799630",
+          "1559799631",
+          "1559799632",
+          "1559799633",
+          "1559799634",
+          "399561785",
+          "1559799629",
+          "1559272108",
+          "1223385257"
+        ],
+        "geometry_source": "https://api.openstreetmap.org/api/0.6/map?bbox=105.845,21.023,105.853,21.029",
+        "geometry_retrieved_on": "2026-10-19",
+        "geometry_snapshot_sha256": "59b93e9c78b9ad4b531636e55704cf7e359c5c093aec926785f5fc3f0035ad3d",
+        "attribution": "© OpenStreetMap contributors, ODbL 1.0; Mapillary feature statistics are candidate evidence only",
+        "license_url": "https://www.openstreetmap.org/copyright"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            105.8457798,
+            21.0268792
+          ],
+          [
+            105.8456623,
+            21.0265202
+          ],
+          [
+            105.845646,
+            21.0264705
+          ],
+          [
+            105.8456154,
+            21.0263771
+          ],
+          [
+            105.8457521,
+            21.0263379
+          ],
+          [
+            105.8458136,
+            21.0263203
+          ],
+          [
+            105.8458741,
+            21.026303
+          ],
+          [
+            105.8458932,
+            21.0262975
+          ],
+          [
+            105.8459137,
+            21.0262913
+          ],
+          [
+            105.846226,
+            21.0261955
+          ],
+          [
+            105.8462499,
+            21.0261884
+          ],
+          [
+            105.8462758,
+            21.0261802
+          ],
+          [
+            105.846723,
+            21.0260437
+          ],
+          [
+            105.8467737,
+            21.0260282
+          ],
+          [
+            105.8468693,
+            21.0260006
+          ],
+          [
+            105.8469516,
+            21.0259769
+          ],
+          [
+            105.8471945,
+            21.0259071
+          ],
+          [
+            105.8472369,
+            21.025892
+          ],
+          [
+            105.8473981,
+            21.025844
+          ],
+          [
+            105.8474754,
+            21.0260672
+          ],
+          [
+            105.8475605,
+            21.0263221
+          ],
+          [
+            105.8475957,
+            21.0264387
+          ],
+          [
+            105.847747,
+            21.0269056
+          ],
+          [
+            105.8477905,
+            21.0270442
+          ],
+          [
+            105.8476681,
+            21.0270792
+          ],
+          [
+            105.8475997,
+            21.027099
+          ],
+          [
+            105.847031,
+            21.0272636
+          ],
+          [
+            105.8475997,
+            21.027099
+          ],
+          [
+            105.8476681,
+            21.0270792
+          ],
+          [
+            105.8477905,
+            21.0270442
+          ],
+          [
+            105.8479591,
+            21.0269939
+          ],
+          [
+            105.8479924,
+            21.0269838
+          ],
+          [
+            105.848354,
+            21.0268813
+          ],
+          [
+            105.8483857,
+            21.026872
+          ],
+          [
+            105.8484178,
+            21.0268631
+          ],
+          [
+            105.8486494,
+            21.0267982
+          ],
+          [
+            105.848672,
+            21.0267919
+          ],
+          [
+            105.8487027,
+            21.0267834
+          ],
+          [
+            105.8494204,
+            21.0265862
+          ],
+          [
+            105.849945,
+            21.0264395
+          ],
+          [
+            105.8499668,
+            21.0264334
+          ],
+          [
+            105.8500986,
+            21.0263959
+          ],
+          [
+            105.8502032,
+            21.0263673
+          ],
+          [
+            105.8502261,
+            21.0263607
+          ],
+          [
+            105.8504721,
+            21.0262904
+          ],
+          [
+            105.850573,
+            21.0262615
+          ],
+          [
+            105.8505903,
+            21.0262566
+          ],
+          [
+            105.8506624,
+            21.026236
+          ],
+          [
+            105.8506752,
+            21.0262324
+          ],
+          [
+            105.8513983,
+            21.0260302
+          ],
+          [
+            105.8514322,
+            21.0260209
+          ],
+          [
+            105.8514388,
+            21.0260187
+          ],
+          [
+            105.8516786,
+            21.0259447
+          ],
+          [
+            105.8516951,
+            21.0258722
+          ],
+          [
+            105.8516728,
+            21.0258016
+          ],
+          [
+            105.8514629,
+            21.0251376
+          ],
+          [
+            105.8513698,
+            21.0248431
+          ],
+          [
+            105.851351,
+            21.0247837
+          ],
+          [
+            105.8513284,
+            21.0247164
+          ],
+          [
+            105.8514859,
+            21.024671
+          ],
+          [
+            105.8515004,
+            21.0246668
+          ],
+          [
+            105.8515537,
+            21.0246513
+          ],
+          [
+            105.8515639,
+            21.0246484
+          ],
+          [
+            105.8515932,
+            21.024639
+          ],
+          [
+            105.8520177,
+            21.0245161
+          ],
+          [
+            105.8520619,
+            21.0245031
+          ],
+          [
+            105.8520723,
+            21.0245001
+          ],
+          [
+            105.8527902,
+            21.0242926
+          ],
+          [
+            105.8528062,
+            21.024288
+          ],
+          [
+            105.8529397,
+            21.0242487
+          ],
+          [
+            105.8528955,
+            21.024085
+          ],
+          [
+            105.8528877,
+            21.0240501
+          ],
+          [
+            105.8527971,
+            21.0236445
+          ],
+          [
+            105.852623,
+            21.0228519
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "rank-cell-1",
+      "properties": {
+        "lat": 21.02537,
+        "lon": 105.84715,
+        "signs": 151,
+        "types": 13,
+        "multi_creator": 84,
+        "multi_year": 32,
+        "maybe_removed": 3,
+        "maybe_new": 127,
+        "median_pass_creators": 7,
+        "score": 149,
+        "rank": 1,
+        "selection_status": "candidate",
+        "geometry_role": "rank_cell_centroid_not_road",
+        "source": "tools/mapillary-coverage/out/hoankiem-segments.csv",
+        "snap_distance_m": 58.4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          105.84715,
+          21.02537
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "rank-cell-2",
+      "properties": {
+        "lat": 21.02695,
+        "lon": 105.84722,
+        "signs": 167,
+        "types": 19,
+        "multi_creator": 76,
+        "multi_year": 32,
+        "maybe_removed": 9,
+        "maybe_new": 110,
+        "median_pass_creators": 3,
+        "score": 147,
+        "rank": 2,
+        "selection_status": "candidate",
+        "geometry_role": "rank_cell_centroid_not_road",
+        "source": "tools/mapillary-coverage/out/hoankiem-segments.csv",
+        "snap_distance_m": 39.8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          105.84722,
+          21.02695
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "rank-cell-3",
+      "properties": {
+        "lat": 21.02643,
+        "lon": 105.8508,
+        "signs": 145,
+        "types": 13,
+        "multi_creator": 77,
+        "multi_year": 28,
+        "maybe_removed": 21,
+        "maybe_new": 93,
+        "median_pass_creators": 6,
+        "score": 138,
+        "rank": 3,
+        "selection_status": "candidate",
+        "geometry_role": "rank_cell_centroid_not_road",
+        "source": "tools/mapillary-coverage/out/hoankiem-segments.csv",
+        "snap_distance_m": 25.4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          105.8508,
+          21.02643
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "rank-cell-4",
+      "properties": {
+        "lat": 21.02284,
+        "lon": 105.85261,
+        "signs": 118,
+        "types": 14,
+        "multi_creator": 53,
+        "multi_year": 22,
+        "maybe_removed": 10,
+        "maybe_new": 88,
+        "median_pass_creators": 8,
+        "score": 109,
+        "rank": 4,
+        "selection_status": "candidate",
+        "geometry_role": "rank_cell_centroid_not_road",
+        "source": "tools/mapillary-coverage/out/hoankiem-segments.csv",
+        "snap_distance_m": 1.9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          105.85261,
+          21.02284
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "rank-cell-5",
+      "properties": {
+        "lat": 21.02675,
+        "lon": 105.8456,
+        "signs": 72,
+        "types": 12,
+        "multi_creator": 43,
+        "multi_year": 23,
+        "maybe_removed": 7,
+        "maybe_new": 46,
+        "median_pass_creators": 8,
+        "score": 98,
+        "rank": 5,
+        "selection_status": "candidate",
+        "geometry_role": "rank_cell_centroid_not_road",
+        "source": "tools/mapillary-coverage/out/hoankiem-segments.csv",
+        "snap_distance_m": 23.5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          105.8456,
+          21.02675
+        ]
+      }
+    }
+  ]
+}

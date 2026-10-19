@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?Dien MYSQL_DATABASE trong .env}
+      MYSQL_USER: ${MYSQL_USER:?Dien MYSQL_USER trong .env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Dien MYSQL_PASSWORD trong .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Dien MYSQL_ROOT_PASSWORD trong .env}
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00"]
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  mysql-data:

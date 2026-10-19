@@ -1,15 +1,22 @@
-# File dataset cho Ultralytics YOLO. Chạy lệnh train từ GỐC repo để `path` trỏ đúng.
-# Tạo dữ liệu trong data/processed/yolo/ bằng script chuẩn bị dataset.
+# Bản chiếu của classes.yaml (qcvn12-2026-10-19); không sửa tên/thứ tự riêng ở đây.
+# CHƯA SẴN SÀNG TRAIN: phải xác minh annotation, giấy phép, lọc trùng và tạo split trước.
+# Chạy từ gốc repo. Đường dẫn tuyệt đối cho môi trường khác phải được ghi trong manifest chạy.
 path: data/processed/yolo
 train: images/train
 val: images/val
 test: images/test
 
+nc: 12
 names:
-  0: cam_nguoc_chieu
-  1: cam_dung_do
-  2: cam_re
-  3: gioi_han_toc_do
-  4: cam_khac
-  5: nguy_hiem
-  6: hieu_lenh
+  0: P.102
+  1: P.103a
+  2: P.123a
+  3: P.123b
+  4: P.124a
+  5: P.128
+  6: P.130
+  7: P.131a
+  8: W.225
+  9: W.227
+  10: I.423a
+  11: I.407a

@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    name: Chặn bí mật và file lớn
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Kiểm tra thay đổi của PR
+        if: github.event_name == 'pull_request'
+        run: .githooks/check.sh range "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+      - name: Kiểm tra commit vừa push
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: .githooks/check.sh range "${{ github.event.before }}" "${{ github.sha }}"
+
+  ai:
+    name: AI (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Chỉ cài gói nhẹ: test không cần torch / ultralytics.
+      - run: pip install pytest pyyaml
+      - run: pytest
+        working-directory: ai
+
+  tools:
+    name: Tools (cú pháp Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: for f in $(git ls-files 'tools/*.mjs'); do node --check "$f"; done
+
+  backend:
+    name: Backend (Maven test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Có project Spring Boot chưa?
+        id: has
+        run: echo "pom=$([ -f backend/pom.xml ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        if: steps.has.outputs.pom == 'yes'
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - if: steps.has.outputs.pom == 'yes'
+        run: ./mvnw -B test
+        working-directory: backend
+
+  android:
+    name: Android (unit test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Có project Android chưa?
+        id: has
+        run: echo "gradle=$([ -f android/gradlew ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        if: steps.has.outputs.gradle == 'yes'
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - if: steps.has.outputs.gradle == 'yes'
+        run: chmod +x gradlew && ./gradlew testDebugUnitTest
+        working-directory: android

@@ -66,6 +66,9 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Cấu hình triển khai còn thiếu | **Cần nhóm quyết:** cơ chế JWT signing, đường dẫn evidence và base URL app; bổ sung .env.example trong thay đổi cấu hình riêng được duyệt, không hard-code trong tài liệu | Trước triển khai |
 | Cài đặt xe trên app | **Cần nhóm quyết:** lưu lựa chọn xe/TTS cục bộ, chưa thêm API ghi hồ sơ; tránh mở endpoint chỉ vì schema có bảng | Trước viết cài đặt |
 | Mở ca xác nhận thủ công | **Cần nhóm quyết:** POST admin/reviews tạo hoặc lấy ca pending của candidate/unclear, rồi dùng decision hiện có; không giả candidate là nghi thay đổi | Trước viết màn chi tiết admin |
+| Tập chọn tham số | **Cần nhóm quyết:** dùng dữ liệu ≤2022 để chọn tham số cho ba mốc 2023–2025; nếu thiếu thì công bố ngưỡng quy ước và phân tích nhạy, không tune trên năm được chấm | Trước chạy thang đối chứng |
+| Kịch bản tiêm mô phỏng | **Cần nhóm quyết:** khóa seed, 10 biển giả/5 tấm đổi, prior giả và thứ tự replay trong CSDL riêng; giữ control/censored và báo riêng ca thật | Trước mô phỏng |
+| Quy trình đo thiết bị | **Cần nhóm quyết:** ít nhất 3 lượt 1x, làm nóng 30 s, pin 10 phút; khóa t_gặp/TTS và ngưỡng FPS/latency/pin sau pilot, không bịa chỉ tiêu | Trước đo app |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

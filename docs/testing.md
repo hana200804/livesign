@@ -53,7 +53,7 @@ phải so từ điểm chưa làm tròn. Dung sai số học do triển khai th�
 | Nối chuỗi | A–B15m,B–C15m,A–C30m không được suy cả ba là một tấm chỉ do liên thông |
 | Giữ ID | Retry/import lại cùng manifest/registry giữ sign_id; không sinh ID từ centroid mới |
 | Thiếu hướng | facing=null không auto merge theo hướng; không lấy heading camera thay |
-| Nhìn được tính tay | 2048×1152,f=0,8 →hFOV≈32,01°, vùng giữa≈27,21°; off20° trong ảnh |
+| Nhìn được tính tay | 2048×1152,f=0,8 →hFOV≈32,01°, vùng giữa≈27,20°; off20° trong ảnh |
 | Khoảng cách âm | 30m đạt phần khoảng cách; 30,01m không âm |
 | Hướng mặt | face180°, bearing biển→camera185° →lệch5°, không dùng bearing chiều ngược |
 | Bốn cờ | Mỗi lần đặt một cờ null/false →unknown nếu không có seen đúng |

@@ -1,0 +1,17 @@
+﻿nhom,conf,so_anh,thay_pct
+Tất cả,0.1,357,8
+Khoảng cách 5–15 m,0.1,77,4
+Khoảng cách 15–25 m,0.1,104,12
+Khoảng cách 25–35 m,0.1,175,7
+Ảnh thường,0.1,326,8
+Ảnh 360°,0.1,31,6
+Mapillary không thấy,0.1,316,7
+Mapillary cũng thấy,0.1,41,12
+Tất cả,0.25,357,2
+Khoảng cách 5–15 m,0.25,77,1
+Khoảng cách 15–25 m,0.25,104,2
+Khoảng cách 25–35 m,0.25,175,2
+Ảnh thường,0.25,326,2
+Ảnh 360°,0.25,31,0
+Mapillary không thấy,0.25,316,2
+Mapillary cũng thấy,0.25,41,2

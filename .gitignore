@@ -1,0 +1,63 @@
+# --- Bí mật: không bao giờ commit ---
+.env
+.env.*
+!.env.example
+*.token
+.token
+**/secrets/
+local.properties
+
+# Cấu hình máy cá nhân của Claude Code (có thể chứa token)
+.claude/settings.local.json
+
+# Bản đề cương cũ / bản xuất, đã thay bằng v3.3 trên Claude Docs
+Đề cương v2*.md
+/*.pdf
+
+# --- Dữ liệu lớn: để trong data/ hoặc Drive chung ---
+data/*
+!data/README.md
+tools/poc/out/images/
+*.zip
+*.7z
+
+# Model và kết quả train
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.engine
+runs/
+wandb/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# --- Node ---
+node_modules/
+
+# --- Java / Spring Boot ---
+target/
+build/
+.gradle/
+*.class
+*.log
+
+# --- Android ---
+*.apk
+*.aab
+.cxx/
+.externalNativeBuild/
+captures/
+
+# --- IDE / hệ điều hành ---
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

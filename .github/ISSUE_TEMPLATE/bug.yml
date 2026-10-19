@@ -1,0 +1,19 @@
+name: Lỗi
+description: Có gì chạy sai
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Chuyện gì xảy ra
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Cách tái hiện
+      placeholder: "1. ...\n2. ..."
+  - type: textarea
+    id: expected
+    attributes:
+      label: Đáng lẽ phải thế nào

@@ -1,0 +1,86 @@
+[
+  {
+    "area": "Quanh Học viện CNBCVT (Km10 Nguyễn Trãi, Hà Đông)",
+    "bbox": [
+      105.782,
+      20.976,
+      105.793,
+      20.986
+    ],
+    "images_total": 52990,
+    "images_on_roads": 52734,
+    "sequences_total": 708,
+    "years": [
+      "2018",
+      "2019",
+      "2020",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "road_length_km": 41.1,
+    "pct_road_covered": 65,
+    "pct_road_2plus_years": 40,
+    "pct_road_3plus_days": 34,
+    "mapillary_signs": 1188,
+    "signs_seen_over_1y": 103
+  },
+  {
+    "area": "Cầu Giấy (Xuân Thủy – Trần Duy Hưng)",
+    "bbox": [
+      105.79,
+      21.026,
+      105.802,
+      21.038
+    ],
+    "images_total": 70811,
+    "images_on_roads": 70339,
+    "sequences_total": 1759,
+    "years": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "road_length_km": 61.7,
+    "pct_road_covered": 45,
+    "pct_road_2plus_years": 27,
+    "pct_road_3plus_days": 28,
+    "mapillary_signs": 1897,
+    "signs_seen_over_1y": 279
+  },
+  {
+    "area": "Hoàn Kiếm (quanh Hồ Gươm)",
+    "bbox": [
+      105.845,
+      21.022,
+      105.857,
+      21.034
+    ],
+    "images_total": 101594,
+    "images_on_roads": 100674,
+    "sequences_total": 1862,
+    "years": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "road_length_km": 40.8,
+    "pct_road_covered": 47,
+    "pct_road_2plus_years": 38,
+    "pct_road_3plus_days": 41,
+    "mapillary_signs": 3692,
+    "signs_seen_over_1y": 743
+  }
+]

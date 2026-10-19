@@ -37,3 +37,51 @@ workflow:
   classes_version: {value: "qcvn12-2026-10-19", status: "đã chốt"} # Khớp classes.yaml; bộ mã được nhóm duyệt, ánh xạ dataset vẫn chưa xác minh.
   corridor_status: {value: candidate, status: "đã chốt"} # Nhóm duyệt giữ vùng top 3 là ứng viên, chưa chốt đường demo.
   negative_evidence_enabled: {value: null, status: "dự kiến"} # Chỉ chốt sau bài thử 2048px tuần 1; null không cho tạo not_seen tự động.
+
+# Bổ sung thiết kế 1.1: chưa có giá trị nào dưới đây là kết quả đo hoặc quyết định cuối.
+positioning:
+  primary_method: {value: null, proposed: ray_least_squares, status: "dự kiến"} # Đề xuất giao tia cho thử nghiệm định vị; luồng đối chứng B0–B3 vẫn cố định vị trí camera.
+  min_ray_crossing_deg: {value: 10, unit: degree, status: "dự kiến"} # Loại cặp tia gần song song trước khi giải; phải kiểm tra thêm điều kiện ma trận.
+  max_condition_number: {value: 1000, unit: ratio, status: "dự kiến"} # Chặn nghiệm bình phương tối thiểu không ổn định; cần hiệu chỉnh trên tập phát triển.
+  max_ray_residual_m: {value: 5, unit: m, status: "dự kiến"} # Ngưỡng phần dư vuông góc để thử lọc tia sai, không phải cam kết sai số tọa độ.
+  bbox_physical_height_m: {value: null, unit: m, status: "dự kiến"} # Kích thước biển thật chưa biết nên chưa được suy khoảng cách tuyệt đối từ bbox.
+
+visibility:
+  max_facing_diff_deg: {value: 45, unit: degree, status: "dự kiến"} # So hướng mặt với bearing từ biển về camera; khác với hướng xe tới biển.
+  sharp_laplacian_min: {value: null, status: "dự kiến"} # Ngưỡng nét trên ROI cùng kích thước/chuẩn ảnh, cần đo trước khi tự tạo bằng chứng âm.
+  min_visible_fraction: {value: null, unit: ratio, status: "dự kiến"} # Tỷ lệ vùng biển không bị che cần kiểm chứng độc lập; không có bộ kiểm tra thì unoccluded=null.
+
+replay:
+  default_rate: {value: 1, unit: ratio, status: "dự kiến"} # Tốc độ phát theo thời gian gốc; đo cảnh báo ở 1x, không nhân speed_mps khi tăng tốc trình diễn.
+  max_gps_speed_mps: {value: 40, unit: m_per_s, status: "dự kiến"} # Bước GPS vượt tốc độ này bị nghi nhảy, không tự nội suy qua bước lỗi.
+  max_gap_s: {value: 10, unit: s, status: "dự kiến"} # Khoảng trống lớn hơn mức này ngắt đoạn phát và tính tốc độ, cần đo trên sequence thật.
+  alert_cooldown_s: {value: 15, unit: s, status: "dự kiến"} # Thời gian tối thiểu giữa hai nhắc cho cùng biển trong cùng phiên; chưa đủ để tự cho nhắc lại.
+  alert_rearm_distance_m: {value: 80, unit: m, status: "dự kiến"} # Chỉ tái nhắc sau khi đã rời vùng và tới gần lại; reset rõ khi đổi chuyến/năm.
+
+ground_truth:
+  match_radius_m: {value: 5, unit: m, status: "dự kiến"} # Bán kính khớp mốc, độc lập bán kính gộp 20 m; khóa trước khi chấm test.
+  max_facing_diff_deg: {value: 30, unit: degree, status: "dự kiến"} # Dung sai hướng khi ghép một-một dự đoán–mốc; thiếu hướng phải báo riêng.
+  reference_error_target_m: {value: 3, unit: m, status: "dự kiến"} # Mục tiêu tham chiếu khoảng 2–3 m cần chứng minh bằng dữ liệu, không phải độ chính xác đã đo.
+
+model:
+  input_size_px: {value: null, proposed: 640, unit: pixel, status: "dự kiến"} # Chọn 640 hoặc 416 bằng phép đo model và máy thật; chưa xuất model trong lần thiết kế.
+  precision: {value: null, proposed: float16_weights, status: "dự kiến"} # Ưu tiên thử float16, input/output đọc từ tensor thực; int8 phải có tập hiệu chuẩn riêng.
+  confidence_min: {value: 0.25, unit: ratio, status: "dự kiến"} # Ngưỡng lọc detection thử nghiệm, không phải θ của biển.
+  nms_iou: {value: 0.45, unit: ratio, status: "dự kiến"} # NMS theo lớp trên bbox cùng hệ tọa độ; giữ nhiều loại chung cột.
+
+training:
+  imgsz: {value: 640, unit: pixel, status: "dự kiến"} # Đề xuất train ban đầu 640; batch inference 2048 là cấu hình khác.
+  epochs: {value: 100, unit: epoch, status: "dự kiến"} # Giới hạn thử ban đầu, dùng validation chọn checkpoint và lưu thời gian thực.
+  batch_local: {value: 8, unit: image, status: "dự kiến"} # Điểm bắt đầu cho GPU 4 GB, giảm khi thiếu bộ nhớ thay vì khẳng định chạy được.
+  batch_colab: {value: 16, unit: image, status: "dự kiến"} # Điểm bắt đầu cho GPU Colab khi được cấp, lưu loại GPU thực tế.
+  phash_max_hamming: {value: 6, unit: bit, status: "dự kiến"} # Ngưỡng ứng viên gần trùng với pHash 64 bit; cần kiểm ảnh trước khi gộp nhóm.
+
+batch_inference:
+  image_long_edge_px: {value: 2048, unit: pixel, status: "dự kiến"} # Tải ảnh cạnh dài ít nhất 2048 khi nguồn có, giữ đúng kích thước đã giải mã.
+  tile_size_px: {value: 640, unit: pixel, status: "dự kiến"} # Cạnh ô trước letterbox; so toàn ảnh và tiling trên cùng tập.
+  tile_overlap_ratio: {value: 0.20, unit: ratio, status: "dự kiến"} # Chồng lấn ô 20% để giảm biển bị cắt; NMS lại trên tọa độ toàn ảnh.
+
+measurement:
+  device_repeats: {value: 3, unit: run, status: "dự kiến"} # Ít nhất ba lần lặp cùng clip ở 1x, không chọn riêng lượt tốt nhất.
+  battery_duration_min: {value: 10, unit: minute, status: "dự kiến"} # Mỗi phiên pin kéo dài 10 phút, cùng mức sáng/mạng và cách đo.
+  warmup_s: {value: 30, unit: s, status: "dự kiến"} # Làm nóng trước cửa sổ FPS/độ trễ; pin phải ghi rõ có tính phần làm nóng hay không.

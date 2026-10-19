@@ -43,6 +43,30 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Khả năng chạy MySQL/SDK | Docker daemon hiện chưa kết nối; MySQL DDL chưa chạy. JDK/Studio/TFLite/key trên từng máy chưa được xác nhận | 25/10 |
 | Chỉ tiêu tốc độ và gộp | Đo thật FPS/độ trễ và lỗi gộp; v3.3 không cho ngưỡng FPS hay % gộp chính xác cụ thể nên không tự gắn ngưỡng nghiệm thu mới | 25/10 |
 | Bố cục API/SQL | Đặc tả 1.0 là bản đề xuất triển khai; chốt phân trang, rate limit, snapshot/history và lưu ảnh trước khi viết controller | Trước khởi tạo/viết tính năng |
+| Định vị nâng cao | **Cần nhóm quyết:** giao tia bình phương tối thiểu khi đủ hình học; dự phòng feature có provenance, rồi GPS camera chỉ là proxy. Các bậc B0–B3 chính giữ cùng vị trí camera để không lẫn tác động định vị với độ tin cậy | Trước thử định vị |
+| Registry gộp ổn định | **Cần nhóm quyết:** nhập tăng dần theo thứ tự cố định, giữ observation→sign và registry ID bền; chạy lại toàn khu ở workspace riêng để tránh đổi khóa review | Trước viết gộp |
+| Cặp chỉ có ngày | **Cần nhóm quyết:** coi ngày là khoảng thời gian; chỉ kết luận K cặp cuối âm khi mọi thứ tự phù hợp đều cho kết quả đó, tránh suy thứ tự từ ID | Trước viết mâu thuẫn |
+| Ưu tiên trạng thái | **Cần nhóm quyết:** mâu thuẫn trước cũ; giữ nguồn xác nhận khi phục hồi; θ chỉ để vào xác nhận, θ_thấp để nghi; candidate có thể nghi khi đủ chứng cứ | Trước viết vòng đời |
+| Kiểm tra âm tự động | **Cần nhóm quyết:** chỉ âm khi kiểm tra độc lập đã audit; ngưỡng nét/che cần đo, thiếu kiểm tra trả unknown để tránh âm giả | Trước bật B3 |
+| Chống nhắc và liên kết đường | **Cần nhóm quyết:** chống lặp theo lần tiếp cận (15 s/80 m dự kiến), thống nhất road_ref Vietmap–CSDL; giữ D=v×5 s và đo hạn chế trễ trước khi xin thêm đệm | Trước viết cảnh báo |
+
+## Đối chiếu nguồn cho bộ thiết kế 1.1
+
+Repo là nguồn ưu tiên theo yêu cầu hiện tại. PDF ở gốc repo là **LiveSign v3.2**,
+15 trang; không sửa hoặc commit PDF. Các khác biệt có bằng chứng:
+
+| Nội dung | PDF v3.2 ở gốc | Repo hiện tại dùng |
+| --- | --- | --- |
+| Tuyến chính | Trần Phú; Hoàn Kiếm là đối chứng | README/GeoJSON: lõi Hoàn Kiếm, tuyến khoảng 1,5 km còn candidate; Trần Phú chỉ PoC |
+| Nhãn nhìn được | Gán tay mẫu 200–300 ảnh | observation.md: model độc lập + audit 60 ảnh và mọi ảnh không chắc |
+| Danh mục/threshold | 10–15 loại, N dự kiến 2–3 | classes.yaml đã duyệt 12 mã; N/θ vẫn null, có proposed riêng |
+| Tổ chức thực hiện | PDF có phân công và lịch | Theo quyết định repo mới: không giao người sẵn, tài liệu thiết kế không dùng mã việc hoặc lịch theo kỳ |
+
+Giữ nguyên các ngưỡng đã chốt trong params. Những tham số thiết kế bổ sung đều
+`status: dự kiến`; chưa phải kết quả đo. Trạng thái repo lúc bắt đầu: nhánh
+`docs/chuan-bi`, commit `f0433eb`; PR nháp #21 do người dùng chỉ định đã được gắn vào
+chat, connector trả 404 khi đọc metadata, không suy ra PR không tồn tại. Lần này chỉ
+commit local, không push hoặc chỉnh nội dung PR.
 
 ## Ba câu hỏi gửi GVHD trong v3.3
 

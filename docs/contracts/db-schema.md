@@ -1,7 +1,7 @@
 # CSDL MySQL 8 — SQL nháp
 
 Đây là **DDL để review**, chưa phải migration Flyway và chưa được thực thi trên
-MySQL trong lần chuẩn bị. Nam phụ trách Backend + Web. MySQL 8.0, InnoDB,
+MySQL trong lần chuẩn bị. MySQL 8.0, InnoDB,
 UTF-8; mọi DATETIME lưu UTC, ID không phân biệt kiểu số/chuỗi từ bên ngoài: luôn string.
 Danh mục sign_type được nạp từ [classes.yaml](../../ai/configs/classes.yaml), không
 tự tạo một danh sách khác trong SQL. Chỉ có tám bảng nghiệp vụ được yêu cầu.
@@ -285,7 +285,7 @@ và [axis order của MySQL](https://dev.mysql.com/blog-archive/axis-order-in-sp
 
 ## Tiêu chí duyệt DDL
 
-Nam chạy trên MySQL 8 sau khi Docker sẵn sàng: tám bảng tạo được, FK sai bị từ chối,
+Chạy trên MySQL 8 sau khi Docker sẵn sàng: tám bảng tạo được, FK sai bị từ chối,
 khác hoa/thường ở sequence/ID không bị gộp; kiểm tra `SHOW CREATE TABLE sign` và
 `SHOW INDEX FROM sign` có SRID/SPATIAL. Thử điểm trên trả lon=105,84715/lat=21,02537.
 Thử hai người/nhiều chuyến cùng năm chỉ tạo đúng hai cặp; unknown không thay α/β;

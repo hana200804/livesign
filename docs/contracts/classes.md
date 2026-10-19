@@ -41,7 +41,7 @@ không cấm xe máy hai bánh; không mở rộng hồ sơ này sang xe máy ba
   không gộp cả hai vào I.423a. Phân biệt P.124a/P.124b và P.131a/b/c tương tự.
 - Zalo 2020 có nhóm rộng; không ánh xạ một nhóm “cấm rẽ” thành một chiều rẽ cụ thể.
   Ảnh được dùng khi có thể gán lại đúng tấm biển; nếu chưa kiểm tra thì giữ ngoài tập.
-- Với mỗi nguồn/phiên bản Roboflow hoặc Kaggle, Hân ghi URL, version, giấy phép,
+- Với mỗi nguồn/phiên bản Roboflow hoặc Kaggle, người chuẩn bị dataset ghi URL, version, giấy phép,
   số ảnh thực, nhãn gốc, mã đích và ví dụ đã xem vào manifest ngoài git/Drive.
   `sources.*.mapping` để rỗng đến khi hoàn tất việc này.
 - Lọc gần trùng giữa nguồn bằng perceptual hash **trước khi** chia theo nguồn/sequence;
@@ -52,7 +52,7 @@ không cấm xe máy hai bánh; không mở rộng hồ sơ này sang xe máy ba
 
 ## Điều kiện đóng danh mục để train
 
-Hân xác nhận đủ mẫu/annotation và giấy phép cho từng lớp; Nam/Anh kiểm tra cùng thứ tự
+Người chuẩn bị dataset xác nhận đủ mẫu/annotation và giấy phép cho từng lớp; phần Backend và Android kiểm tra cùng thứ tự
 và tên mã. Sau đó mới bật `training_ready`, gắn version manifest và đưa dataset vào
 `data/processed/yolo/`. Nếu đổi bộ lớp, tăng `classes_version`, xuất lại model và nhãn app;
 Backend từ chối lô khai phiên bản lớp khác bản đã hỗ trợ.

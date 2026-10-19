@@ -13,7 +13,7 @@ Không sửa bản đề cương hoặc các README được yêu cầu chỉ đ
 | Điểm tin cậy, vòng đời | README mô tả Beta và nghi thay đổi | Tham số có trạng thái; cặp người/năm; trạng thái và hợp đồng admin |
 | Công nghệ, CSDL | README định hướng Spring Boot/MySQL, Kotlin/Vietmap, YOLOv8n | API/SQL/Compose; chưa có project Spring hoặc Android |
 | Đánh giá B0–B3 | Kết quả YOLO-World PoC và số liệu coverage | Bộ mốc độc lập theo năm; train thử Việt Nam 2048px; quyết định giữ B3 |
-| Tuần 1, phân công | Tool coverage/trip-check/rank, fetch-signs và server gán nhãn | Checklist, 6 việc có tiêu chí/fallback và tên người nhận |
+| Môi trường | Tool coverage/trip-check/rank, fetch-signs và server gán nhãn | Checklist môi trường, tài khoản, MySQL local |
 
 ## Những gì số liệu thật chứng minh
 
@@ -43,10 +43,10 @@ Không sửa bản đề cương hoặc các README được yêu cầu chỉ đ
 
 [Setup](setup.md) · [Lớp](contracts/classes.md) · [Lần thấy](contracts/observation.md) ·
 [API](contracts/api.md) · [CSDL](contracts/db-schema.md) · [Tham số](../config/params.yaml) ·
-[Ứng viên demo](../data-small/demo-corridor.geojson) · [Quyết định](decisions.md) · [Tuần 1](week1.md).
+[Ứng viên demo](../data-small/demo-corridor.geojson) · [Quyết định](decisions.md).
 
 Các file này đặc tả việc sẽ triển khai; không phải bằng chứng đã train, đã chạy app,
-đã dựng backend hoặc đã hoàn thành nghiệm thu tuần 1.
+hoặc đã dựng backend.
 
 ## Hình học ứng viên và kiểm tra tài liệu
 
@@ -64,4 +64,4 @@ JSON ví dụ đọc được; 10 mẫu đúng từng dòng nguồn; GeoJSON n�
 `git diff --check` đạt. Không dùng credential thật trong kiểm tra Compose.
 
 **Chưa kiểm chứng runtime:** chưa tạo bảng SQL do Docker daemon chưa chạy;
-chưa chạy app/SDK/TFLite, train hoặc nhập/gộp dữ liệu. Những mục đó nằm trong tuần 1.
+chưa chạy app/SDK/TFLite, train hoặc nhập/gộp dữ liệu.

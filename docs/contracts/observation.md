@@ -1,6 +1,6 @@
 # Hợp đồng lần thấy — AI / Android → Backend
 
-Phiên bản đặc tả **1.0**, đề xuất để triển khai; Hân, Nam, Anh cùng đọc.
+Phiên bản đặc tả **1.0**, đề xuất để triển khai; cả nhóm cùng đọc.
 Nguồn lớp: [classes.yaml](../../ai/configs/classes.yaml). Tham số: [params.yaml](../../config/params.yaml).
 File trao đổi là **JSON Lines UTF-8**, mỗi dòng một lần kiểm tra một tấm biển trong
 một ảnh, không phải một dòng cho cả ảnh. JSON dùng `null`, không dùng NaN, chuỗi rỗng
@@ -41,7 +41,7 @@ lưu dưới dạng JSON và thời gian ngày được chuẩn hóa như dướ
 | `in_fov`, `facing_camera`, `sharp`, `unoccluded` | boolean/null | Bốn điều kiện kiểm tra nhìn được; null = chưa kiểm tra được, false = không đạt |
 | `visibility_method` | enum | Có; `unverified`, `independent_model_audited`, `human`, `automatic_rules` |
 | `model_version` | string/null, ≤128 | Tên bản nhận diện/manifest; bắt buộc nếu có confidence/bbox hoặc kết quả model |
-| `evidence_ref` | string/null, ≤512 | Đường dẫn tương đối trong kho bằng chứng ngoài git, không phải local path máy Hân hoặc URL chứa token |
+| `evidence_ref` | string/null, ≤512 | Đường dẫn tương đối trong kho bằng chứng ngoài git, không phải đường dẫn trên máy cá nhân hoặc URL chứa token |
 | `source_metadata` | object/null | Dữ liệu thô/provenance không đủ chuẩn đưa vào cột chính; không chứa credential |
 
 `schema_version` và `classes_version` ở envelope lô API hoặc manifest kèm file;
@@ -102,6 +102,16 @@ nhiên 60 ảnh và mọi ảnh không chắc; lưu người/model/phiên bản 
 Nhãn **khả năng nhìn được** tách khỏi outcome của YOLO đang được đo.
 Trong app phát lại, quy tắc tự động thiếu cơ sở thì trả unknown; không giả định có
 người gán tay mỗi lượt. Đây là giới hạn của phần triển khai tự động.
+
+## Nhãn khả năng nhìn được (tách khỏi outcome)
+
+CSV gán nhãn khả năng nhìn được dùng cùng khóa `source_sign_id`, `image_id`,
+`creator_id`, `captured_at` như hợp đồng; thêm `visibility_label`:
+`visible | not_visible | unknown`, `labeler`, `labeled_at`, lý do và phiên bản model gán.
+Đây là nhãn độc lập dùng làm mẫu số phép đo, **không phải** outcome YOLO:
+`visible` nhưng YOLO không thấy chỉ trở thành not_seen khi đủ toàn bộ điều kiện hợp đồng
+và đã được nhóm duyệt dùng bằng chứng âm. Ảnh nhìn không được/không chắc vẫn unknown.
+60 ảnh random là 60 `image_id` khác nhau; nếu một ảnh có nhiều target thì duyệt các target tương ứng.
 
 ## Gộp bằng chứng theo cặp
 

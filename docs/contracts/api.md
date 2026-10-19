@@ -37,7 +37,7 @@ Ví dụ lỗi đơn:
 | `GET /sign-types` | Cả ba phần | Đọc cùng danh mục mã, class_id, xe áp dụng và phiên bản |
 
 ```json
-{"username":"nam","password":"<nhập trên máy, không lưu vào repo>"}
+{"username":"demo_admin","password":"<nhập trên máy, không lưu vào repo>"}
 ```
 
 ```json

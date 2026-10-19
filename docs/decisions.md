@@ -53,6 +53,8 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | NMS model | **Cần nhóm quyết:** NMS theo lớp ở client với confidence 0,25/IoU 0,45 dự kiến, khóa bằng tập phát triển, giữ nhiều loại cùng cột | Trước đóng model manifest |
 | Chuẩn replay và tốc độ | **Cần nhóm quyết:** tốc độ theo đoạn GPS/thời gian gốc, gap >10 s hoặc bước >40 m/s tách đoạn, heading camera thiếu để null, mặc định 1x; các ngưỡng cần đo | Trước chuẩn hóa trace |
 | Replay và re-infer | **Cần nhóm quyết:** replay thuần không tạo quan sát mới; re-infer Android dùng trip phiên riêng, giữ sequence/creator/time gốc và model_version, tránh đổi source dưới cùng ID | Trước tích hợp app–API |
+| Hiện trạng mốc theo năm | **Cần nhóm quyết:** chỉ chấm tồn tại/vắng khi có bằng chứng của năm, giữ uncertain/pending riêng; không suy first/last thành hiện trạng chắc mọi năm | Trước khóa bộ mốc |
+| Ghép mốc một–một | **Cần nhóm quyết:** X=5 m/Y=30° dự kiến, matching tối đa số cặp rồi tối thiểu sai số; báo nhạy 3/5/10 m để tránh ưu thế từ thứ tự greedy/dung sai | Trước chấm kết quả |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

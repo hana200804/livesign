@@ -62,6 +62,7 @@ ground_truth:
   match_radius_m: {value: 5, unit: m, status: "dự kiến"} # Bán kính khớp mốc, độc lập bán kính gộp 20 m; khóa trước khi chấm test.
   max_facing_diff_deg: {value: 30, unit: degree, status: "dự kiến"} # Dung sai hướng khi ghép một-một dự đoán–mốc; thiếu hướng phải báo riêng.
   reference_error_target_m: {value: 3, unit: m, status: "dự kiến"} # Mục tiêu tham chiếu khoảng 2–3 m cần chứng minh bằng dữ liệu, không phải độ chính xác đã đo.
+  sensitivity_radii_m: {value: [3, 5, 10], unit: m, status: "dự kiến"} # Báo đủ các dung sai nhạy để thấy ảnh hưởng tọa độ; không chọn riêng mức tốt nhất trên test.
 
 model:
   input_size_px: {value: null, proposed: 640, unit: pixel, status: "dự kiến"} # Chọn 640 hoặc 416 bằng phép đo model và máy thật; chưa xuất model trong lần thiết kế.

@@ -69,6 +69,8 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Tập chọn tham số | **Cần nhóm quyết:** dùng dữ liệu ≤2022 để chọn tham số cho ba mốc 2023–2025; nếu thiếu thì công bố ngưỡng quy ước và phân tích nhạy, không tune trên năm được chấm | Trước chạy thang đối chứng |
 | Kịch bản tiêm mô phỏng | **Cần nhóm quyết:** khóa seed, 10 biển giả/5 tấm đổi, prior giả và thứ tự replay trong CSDL riêng; giữ control/censored và báo riêng ca thật | Trước mô phỏng |
 | Quy trình đo thiết bị | **Cần nhóm quyết:** ít nhất 3 lượt 1x, làm nóng 30 s, pin 10 phút; khóa t_gặp/TTS và ngưỡng FPS/latency/pin sau pilot, không bịa chỉ tiêu | Trước đo app |
+| Tích hợp MySQL để test | **Cần nhóm quyết:** Testcontainers MySQL 8 cho tự động, Compose cho kiểm tay; không dùng H2 để kết luận SRID/SPATIAL/FK tương đương | Khi có project |
+| Gate CI | **Cần nhóm quyết:** kiểm docs/data trước, build/test JDK21 và Android chỉ khi project tồn tại; chưa tạo workflow trong lần tài liệu | Trước bật CI build |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

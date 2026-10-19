@@ -91,7 +91,7 @@ flowchart LR
 | --- | --- |
 | Tác nhân | Importer, hoặc app re-infer có quyền user |
 | Tiền điều kiện | JSONL/schema 1.0 đúng hợp đồng; một trip/lô; classes_version được hỗ trợ, creator/time giữ gốc; không có credential trong payload |
-| Luồng chính | Chuẩn bị ảnh/metadata/manifest ngoài git → tạo observation ID bền → **lượt 1**: POST observations/batch chỉ seen/unknown, kèm bbox, tư thế camera, `feature_candidates` → kiểm envelope/dòng → lưu dòng hợp lệ/idempotency → job snapshot gọi `core` (gom, định vị, hướng mặt, gộp, điểm, trạng thái) cho các năm bị ảnh hưởng → trả count/kết quả dòng. **Lượt 2**, chỉ khi `negative_evidence_enabled`: GET signs theo năm → kiểm nhìn được → POST not_seen → dựng lại snapshot |
+| Luồng chính | Chuẩn bị ảnh/metadata/manifest ngoài git → tạo observation ID bền → **lượt 1**: POST observations/batch chỉ seen/unknown, kèm bbox, tư thế camera, `feature_candidates` → kiểm envelope/dòng → lưu dòng hợp lệ/idempotency → job snapshot gọi `core` (gom, định vị, hướng mặt, gộp, điểm, trạng thái) cho các năm bị ảnh hưởng → trả count/kết quả dòng. **Lượt 2**, chỉ khi `negative_evidence_enabled`: GET signs theo năm chụp → kiểm nhìn được → POST not_seen → dựng lại run các năm bị ảnh hưởng |
 | Luồng lỗi | Envelope sai: từ chối cả lô; từng dòng sai: rejected, dòng đúng vẫn lưu; cùng ID khác payload: conflict; not_seen khi chưa duyệt âm:422; retry cùng payload không nhân quan sát; model bỏ sót đơn thuần không được gửi âm |
 | Hậu điều kiện | Truy vết được ảnh/model/creator/time; unknown không cộng điểm/độ mới; N/θ null chưa tự xác nhận; run snapshot mới `ready`, run cũ phục vụ tới lúc đó rồi sang `superseded` |
 | Chấp nhận | Count tổng bằng số dòng, duplicate không tăng cặp; source/trip/sequence/creator bất biến đúng envelope |
@@ -102,7 +102,7 @@ flowchart LR
 | --- | --- |
 | Tác nhân | Admin |
 | Tiền điều kiện | JWT admin, ca pending thuộc snapshot, ảnh trước/sau đủ đọc và version còn khớp |
-| Luồng chính | GET queue/detail/evidence → xem điểm/tuổi/lý do → chọn confirm/keep/remove/replace/defer + lý do → POST decision expected_version → transaction sign/review/history → dựng lại snapshot của sign → nhận trạng thái mới |
+| Luồng chính | GET queue/detail/evidence → xem điểm/tuổi/lý do → chọn confirm/keep/remove/replace/defer + lý do → POST decision expected_version → transaction sign/review/history → dựng lại run các năm mà quyết định có hiệu lực → nhận trạng thái mới |
 | Luồng lỗi | 403: không có quyền; thiếu bằng chứng/replacement:422; 409: tải và xem lại trước quyết; mất mạng sau gửi: đọc lại version trước thử lại; không tự retry thao tác gỡ/thay |
 | Hậu điều kiện | confirm/keep là manual; defer còn pending; removed/replaced chỉ admin và giữ history; tấm thay có sign_id riêng |
 | Chấp nhận | Hai admin cùng version chỉ một quyết định được ghi; không gỡ chỉ vì thiếu ảnh mới; một ca pending/sign |
@@ -200,13 +200,14 @@ xóa vật lý sign/history; tuyến thứ hai.
 | N/θ/θ_thấp | Phải có `value` trước lần dựng snapshot thật: số đo nếu đủ, không thì nhóm ghi giá trị quy ước (đề xuất 3/0,75/0,40) và báo độ nhạy. Còn null thì không biển nào tự xác nhận, app không có biển để nhắc | 25/10 |
 | B3 | ≥50% giữ, <30% bỏ (params). Khoảng [30%,50%): không bật âm cho bản đồ sản phẩm; B3 chỉ chạy trong CLI như phân tích phụ, báo kèm tỷ lệ bài thử | 25/10 |
 | FPS/latency/pin | Không chặn MVP: đo đủ protocol và báo số; ngưỡng đạt đặt sau pilot | Sau pilot |
+| Quyết định admin trong post_review | Quyết định làm năm 2026 không qua kiểm decided_at của 2023–2025; cách gán mốc hồi cứu theo bảng Còn mở của decisions.md. MVP vẫn phải ra đủ cột pre/post | Trước chạy post_review |
 
 ### Tiêu chí MVP hoàn thành
 
 1. Nạp corpus tuyến demo ba năm từ một manifest → mỗi năm 2023/2024/2025 có `snapshot_run` `ready`.
 2. App phát lại ít nhất một chuyến mỗi năm, nhắc đúng loại xe (P.103a không nhắc motorcycle), có log t_gặp/t_banner/t_TTS.
 3. Test đối chiếu: lọc cục bộ của app và `/signs/ahead` ra cùng danh sách trên cùng trace.
-4. Khung cảnh demo chạy trọn: biển xác nhận 2023 → NGHI THAY ĐỔI → admin replace → app nhắc biển mới; bản đồ 2023 không đổi. Ca thật hoặc mô phỏng có nhãn. Biển thay phải tự đạt confirmed_auto bằng bằng chứng có sẵn (kịch bản mô phỏng cấp đủ N cặp), để demo không phụ thuộc mục Nên có.
+4. Khung cảnh demo chạy trọn: biển xác nhận 2023 → NGHI THAY ĐỔI → admin replace → app nhắc biển mới; bản đồ 2023 không đổi. Chạy trong môi trường mô phỏng (quyết định thật làm năm 2026 không vào bản đồ 2023–2025); ảnh có thể là ca thật. Biển thay phải tự đạt confirmed_auto bằng bằng chứng có sẵn (kịch bản mô phỏng cấp đủ N cặp), để demo không phụ thuộc mục Nên có.
 5. CLI + script ra `map-metrics.csv` đủ tổ hợp bậc × năm × pre/post, hoặc lý do not_run; cùng đầu vào cùng hash.
 6. Có `model-metrics.csv` và `device-runs.csv` (≥3 lượt) trên máy Android thật.
 7. Các test ở mục "Unit test điểm và vòng đời — bắt buộc" và "Bổ sung theo kiến trúc 1.2" của [testing.md](testing.md) chạy đạt.

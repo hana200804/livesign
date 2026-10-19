@@ -174,7 +174,7 @@ VỚI mỗi seen chưa có target hợp lệ:
   NẾU không có: tạo candidate với sign_id mới và lưu registry
   NẾU có nhiều ứng viên gần ngang nhau: giữ riêng/đưa kiểm tra, không chọn ngẫu nhiên
   KHÔNG đổi loại sign cũ để hấp thụ biển loại mới
-SAU lô: tính lại chỉ sign bị ảnh hưởng và các hàng xóm cần kiểm tra mâu thuẫn
+SAU lô: dựng lại run cả năm (kiến trúc 1.2); chỉ tính lại sign bị ảnh hưởng và hàng xóm khi đo thấy chậm
 ```
 
 **Cần nhóm quyết:** đề xuất nhập tăng dần với registry ID bền, xử lý theo thứ tự cố
@@ -349,7 +349,7 @@ Backfill có thể làm đổi lịch sử suy luận, phải lưu phiên bản 
 
 ### Khi tính lại và độ phức tạp
 
-Sau lô đồng bộ: tập bị ảnh hưởng gồm sign nhận quan sát, sign láng giềng có thể
+Khi tối ưu sang dựng riêng (db-schema 1.2), tập bị ảnh hưởng sau lô gồm sign nhận quan sát, sign láng giềng có thể
 liên quan (c), và sign cũ/mới khi admin thay. Tính lại từ bằng chứng gốc thay vì
 cộng score đã làm tròn. Sang năm T mới phải giảm trọng số và xét H **cả biển không
 có lô mới**; đọc snapshot cũng phải kiểm phiên bản/năm. Không chỉ cập nhật khi có ảnh mới.

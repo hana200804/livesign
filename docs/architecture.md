@@ -1,6 +1,6 @@
 # Kiến trúc LiveSign
 
-Thiết kế 1.1; chưa dựng project/dịch vụ. Nguồn API/CSDL/lớp/đơn vị ở
+Thiết kế 1.2; chưa dựng project/dịch vụ. Phạm vi phải làm ở [Phạm vi MVP](requirements.md#phạm-vi-mvp). Nguồn API/CSDL/lớp/đơn vị ở
 [contracts](contracts/api.md), thuật toán ở [algorithms.md](algorithms.md).
 Một backend Spring Boot chia module; Python chạy batch/notebook, không là dịch vụ online.
 Thuật toán lõi (định vị, hướng mặt, gộp, điểm tin cậy, vòng đời) viết **một lần** trong
@@ -59,14 +59,15 @@ flowchart TB
   Eval -->|"CSV bản đồ theo bậc và năm"| Score
   GT --> Score
   App <-->|"Một lần mỗi chuyến: trace, biển dọc chuyến; ảnh tải trước"| Query
-  App -->|"POST observation và login"| Ingest
+  App -->|"POST /auth/login"| Admin
+  App -.->|"POST observation khi re-infer, ngoài MVP"| Ingest
   App <-->|"Map Matching cả vết, một lần"| Vietmap
   Web <-->|"HTTPS JSON, JWT; ảnh bằng chứng"| Admin
   Web -->|"GET /signs và history"| Query
   Store -->|"Gói TFLite và labels đã kiểm hash"| App
 ```
 
-Ingest kiểm quyền nội bộ trước xử lý; app/login được phục vụ bởi
+Ingest kiểm quyền nội bộ trước xử lý; login của app/web/importer được phục vụ bởi
 module Admin/auth qua cùng base path `/api/v1`, không phải dịch vụ thứ hai.
 Ảnh trong kho không công khai trực tiếp cả thư mục; API kiểm trip/sign/cutoff/role.
 Gói model copy cục bộ có manifest, chưa thiết kế endpoint phát hành model tự động.
@@ -74,7 +75,7 @@ Gói model copy cục bộ có manifest, chưa thiết kế endpoint phát hành
 | Module | Trách nhiệm | Không nhận thêm trách nhiệm |
 | --- | --- | --- |
 | Nhập | Validate envelope/dòng, idempotency hash, trip, lưu bền; gọi job snapshot | Không tự gộp, không tự coi upload là bằng chứng mới |
-| Job snapshot | Với mỗi evaluation_year: gọi `core`, ghi sign/history/review hiện tại và một lần chạy `sign_snapshot` | Không phục vụ request đọc |
+| Job snapshot | Với mỗi evaluation_year bị ảnh hưởng: gọi `core` trên **toàn bộ** observation trước cutoff, ghi sign/history/review hiện tại và một run `sign_snapshot` đủ mọi biển của năm | Không phục vụ request đọc; không dựng run chỉ chứa một phần biển |
 | core: Định vị | Gom lần thấy cùng tấm → giao tia → feature Mapillary → camera_proxy; ước lượng hướng mặt | Không gọi CSDL hay HTTP; nhận dữ liệu, trả kết quả |
 | core: Gộp | Liên kết observation→tấm, registry ổn định, nhiều tấm chung cột | Không quyết gỡ/thay |
 | core: Tin cậy | Cặp người/năm, score/độ mới/mâu thuẫn, trạng thái | Không dùng confidence detector làm score |
@@ -99,20 +100,21 @@ sequenceDiagram
   AI->>Files: Ghi ảnh, trace và manifest có hash
   AI->>API: Lượt 1: POST /observations/batch chỉ seen và unknown
   API->>DB: Kiểm role, lớp, schema, hash rồi ghi dòng hợp lệ
-  API->>Job: Báo tập sign bị ảnh hưởng
+  API->>Job: Báo các năm bị ảnh hưởng: mọi evaluation_year từ năm chụp sớm nhất của lô
   Job->>DB: Đọc lần thấy trước cutoff
-  Job->>Job: core: gom, định vị, hướng mặt, gộp, điểm, trạng thái
-  Job->>DB: Ghi sign, history, review và sign_snapshot mỗi năm
+  Job->>Job: core: gán registry, gom, định vị, hướng mặt, gộp, điểm, trạng thái
+  Job->>DB: Ghi sign, history, review và một run sign_snapshot mỗi năm
   API-->>AI: 200 counts và kết quả từng observation
-  AI->>API: GET /signs theo năm: vị trí và hướng mặt đã dựng
+  AI->>API: GET /signs theo năm chụp của ảnh, role importer: vị trí và hướng mặt
   AI->>AI: Kiểm nhìn được với từng biển đã biết
   AI->>API: Lượt 2: POST not_seen đủ điều kiện, nếu đã bật
-  API->>Job: Dựng lại snapshot các sign bị ảnh hưởng
+  API->>Job: Dựng lại run của các năm bị ảnh hưởng
 ```
 
 Hai lượt là bắt buộc: not_seen cần vị trí và hướng mặt của biển, mà các giá trị này chỉ
 có sau khi `core` gom các seen. Lô 1.0 là đồng bộ, chưa hứa job queue; ở quy mô một
-tuyến demo, job snapshot chạy ngay sau lô. Nếu envelope sai từ chối cả lô; dòng sai trả
+tuyến demo, job dựng lại cả năm ngay sau lô (registry giữ sign_id bền, không đổi ID khi dựng
+lại). Một observation năm y ảnh hưởng mọi năm đánh giá ≥y, vì trọng số và H tính theo T. Nếu envelope sai từ chối cả lô; dòng sai trả
 rejected, dòng hợp lệ lưu. Lỗi hệ thống giữa chừng: client retry cùng ID/hash. Quyết
 định admin đồng thời được chặn bằng optimistic lock/version.
 
@@ -169,13 +171,18 @@ sequenceDiagram
   else Dữ liệu phù hợp
     API->>DB: Một transaction: sign, review, sign_history
     DB-->>API: Commit
+    API->>API: Job dựng lại run các năm mà quyết định có hiệu lực
     API-->>Web: Trạng thái, version và history_id mới
   end
 ```
 
 confirm/keep là xác nhận thủ công, defer giữ pending, remove/replace chỉ admin.
 Biển thay mới có sign_id riêng; tạo candidate và xác nhận biển mới là hai thao tác
-riêng theo API. Watermark đã duyệt là đề xuất còn mở, không xóa âm để làm tăng score.
+riêng theo API. Trong MVP biển thay phải đã có từ dữ liệu; `POST /admin/signs` và
+`POST /admin/reviews` thuộc Nên có. Quyết định chỉ vào run của năm T khi effective_at và
+decided_at đều trước cutoff (API 1.1), nên quyết định thật làm năm 2026 không đổi bản đồ
+2023–2025; khung cảnh demo chạy trong môi trường mô phỏng. Watermark đã duyệt là đề
+xuất còn mở, không xóa âm để làm tăng score.
 
 ## Vòng đời tấm biển
 
@@ -251,10 +258,10 @@ flowchart LR
 hoặc dữ liệu lớn. HTTP chỉ cho localhost/dev được kiểm soát; app trên điện thoại
 cần base URL truy cập được, không gọi localhost của điện thoại để tìm backend máy tính.
 
-**Cần nhóm quyết:** cấu hình JWT signing, đường dẫn kho ảnh và base URL app trước
-triển khai. .env.example hiện chưa có các mục đó; đề xuất bổ sung bằng thay đổi cấu
-hình riêng được duyệt, không hard-code secret hoặc tự thêm biến môi trường trong
-lần chỉ viết tài liệu. HTTPS/phân quyền vẫn là yêu cầu, chưa được kiểm chứng đã cấu hình.
+Nhóm chốt 19/10: JWT ký HS256, khóa ≥32 byte đọc từ `LIVESIGN_JWT_SECRET`; gốc kho ảnh
+và manifest đọc từ `LIVESIGN_DATA_ROOT`; app đọc base URL từ `LIVESIGN_API_BASE_URL` trong
+local.properties/BuildConfig như key Vietmap. Thêm ba tên này vào .env.example khi khởi tạo
+project, không hard-code secret. HTTPS/phân quyền vẫn là yêu cầu, chưa được kiểm chứng đã cấu hình.
 
 ## Bất biến xuyên suốt
 
@@ -262,13 +269,13 @@ lần chỉ viết tài liệu. HTTPS/phân quyền vẫn là yêu cầu, chưa 
 | --- | --- |
 | Một nguồn lớp | classes.yaml → dataset/model labels → sign_type/API → app; classes_version phải khớp |
 | Cấu hình có phiên bản | params_version + config hash, không dùng một tên version che hai nội dung khác nhau |
-| Snapshot theo năm | Lọc ảnh, liên kết tấm, tọa độ, điểm và admin trước cutoff; cache key đầy đủ |
+| Snapshot theo năm | Lọc ảnh, liên kết tấm, tọa độ, điểm và admin trước cutoff; API chỉ đọc run `ready`; cache key đầy đủ |
 | Ba kết quả | unknown không cập nhật α/β/độ mới; âm phải đủ kiểm nhìn được |
 | Truy vết | creator/time gốc, image/sequence, observation/model version, history trước/sau |
 | Phân biệt sản phẩm/chấm | unclear/suspected_change vẫn nhắc có nhãn; bị loại theo B2/B3 khi chấm |
 | Ngoài git | Ảnh/dataset/model/credential ở kho riêng, repo giữ hợp đồng và mẫu nhỏ |
 
-Ngoài phạm vi thiết kế triển khai lõi: Redis, RT-DETR/FastAPI, chức năng chỉ đường.
+Ngoài phạm vi: Redis, DETR/RT-DETR, FastAPI, chức năng chỉ đường ([Phạm vi MVP](requirements.md#phạm-vi-mvp)).
 Vietmap Map Matching phục vụ khớp vết để lọc biển, không biến LiveSign thành app
-dẫn đường. MinIO chỉ là lựa chọn kho sau khi ổ đĩa không đáp ứng hoặc điều kiện
-phiếu giao đề tài được làm rõ; không thêm dịch vụ chỉ để đủ tên công nghệ.
+dẫn đường. MinIO thuộc Nên có, chỉ thay ổ đĩa khi ổ đĩa không đáp ứng; không thêm
+dịch vụ chỉ để đủ tên công nghệ.

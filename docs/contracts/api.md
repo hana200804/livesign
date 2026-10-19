@@ -571,3 +571,4 @@ chống nhắc lặp) với **tham số lấy từ `alert_params`**, không ché
 - Các endpoint bản đồ đọc `sign_snapshot`; thêm `snapshot_run_id` và lỗi 503 `SNAPSHOT_NOT_READY`.
 - Thêm `GET /trips/{trip_id}/signs` trả biển dọc chuyến + `alert_params` cho lọc cục bộ.
 - Item biển có thêm `location_method`, `facing_source`, `alertable`.
+- `GET /signs` cho thêm role importer đọc, để batch AI lấy vị trí/hướng mặt khi tạo not_seen ở lượt 2.

@@ -290,3 +290,81 @@ khác hoa/thường ở sequence/ID không bị gộp; kiểm tra `SHOW CREATE T
 `SHOW INDEX FROM sign` có SRID/SPATIAL. Thử điểm trên trả lon=105,84715/lat=21,02537.
 Thử hai người/nhiều chuyến cùng năm chỉ tạo đúng hai cặp; unknown không thay α/β;
 đổi loại/gỡ có ảnh trước/sau và history; snapshot 2023 không đọc observation 2024.
+
+## Thay đổi 1.1
+
+Chỉ bổ sung thiết kế phục vụ [API 1.1](api.md), giữ nguyên DDL tám bảng/enum 1.0.
+Đây là danh sách cột **dự thảo**, chưa có migration thực thi; không tạo bảng frame
+chứa hàng triệu ảnh khi manifest ngoài git đã đủ cho phạm vi demo.
+
+### Cột bổ sung vào trip
+
+| Cột mới | MySQL nháp | Ý nghĩa / tương thích |
+| --- | --- | --- |
+| `trace_schema_version` | VARCHAR(16) NULL | Khai schema JSONL 1.1; trip cũ chưa có chuẩn hóa được để null |
+| `trace_manifest_ref` | VARCHAR(512) NULL | Ref tương đối tới manifest đầy đủ ngoài git, không chứa credential |
+| `trace_sha256` | CHAR(64) NULL | Hash trace gốc; hash representation sau lọc cutoff tính riêng khi phục vụ |
+| `point_count` | INT UNSIGNED NULL | Số điểm trace **gốc**, không lấy trực tiếp làm số điểm API năm đã cắt |
+| `data_kind` | ENUM('public_metadata','illustration') NULL | Null cho trip cũ chưa kiểm; illustration không vào đánh giá thật |
+| `data_revision` | VARCHAR(64) NULL | Phiên bản dữ liệu/manifest phục vụ cache/snapshot |
+| `replay_enabled` | BOOLEAN NOT NULL DEFAULT FALSE | Chỉ bật sau kiểm manifest/quyền ảnh; không tự coi mọi trip đã nhập là xem được |
+
+trace_ref cũ vẫn là ref trace, có thể GeoJSON theo ví dụ 1.0. Chuẩn hóa JSONL tạo
+file/hash/ref mới và lưu provenance, không sửa bytes file cũ tại chỗ. Các trường mới
+nullable để không gán thông tin chưa biết cho PoC. CHECK độ dài hash/giá trị boolean
+và quy tắc các cột đi cùng nhau được định nghĩa trong migration sau khi review.
+
+**Cần nhóm quyết:** giữ frame/image lookup ở manifest bất biến của trip, thay vì
+thêm bảng ảnh trong bản đầu; lý do là trace nhỏ dễ đóng gói/cache, vẫn kiểm được
+image_id thuộc trip và cutoff. Nếu đo truy vấn manifest không đủ nhanh mới đề nghị
+bảng frame có FK trip; chưa tự mở rộng schema.
+
+### Manifest ảnh và quyền đọc
+
+Manifest ngoài git ánh xạ image_id tới `t`, `image_ref`, hash, kích thước ảnh và
+attribution; bổ sung metadata camera gốc mà trace tối giản không chứa (focal, pano,
+width/height, nguồn computed/fallback). Backend chỉ đọc ref đã kiểm tra trong kho,
+không nối path từ input client. Bật replay_enabled nghĩa là tài khoản user được cấp
+quyền đọc bộ replay công khai đã chuẩn bị; trip.user_id vẫn là người nạp, không
+biến tài khoản nạp thành người chụp hoặc tự mở quyền lên mọi file của tài khoản đó.
+
+### Không thêm cột trùng nghĩa vào observation
+
+| Cần lưu | Chỗ lưu đã có | Nội dung mới |
+| --- | --- | --- |
+| Phương pháp định vị | source_metadata.positioning | method, ảnh/tia dùng, residual, condition number, reason khi fallback |
+| Tiền/hậu xử lý model | source_metadata.inference | model_manifest_sha256, tile layout, resize/pad, confidence/NMS dùng |
+| Truy vết năm/nguồn | source_metadata.provenance | timestamp gốc, computed/fallback, source URL không token, data_revision |
+| Ảnh cho duyệt | evidence_ref | Ảnh/crop/ROI thực đã lưu; không phải URI tải có token |
+| Cặp bằng chứng | Cột creator_id, captured_at/captured_year | Không thay bằng người upload, số sequence hoặc thời gian re-infer |
+
+Không tạo cột `confidence` khác nghĩa detector_confidence hoặc agreement_score.
+Không tạo FK creator_id→user. Hình học sign.location vẫn SRID 4326/SPATIAL;
+trace point chỉ giữ scalar lon/lat đúng hợp đồng trao đổi, không dùng WKT đảo trục.
+
+### History, cache và watermark admin
+
+sign_history.after_snapshot bổ sung object `provenance`: evaluation_year,
+params_version, config_sha256, data_revision, registry_version, model_version và
+`acknowledged_observation_ids` khi admin xử lý. Danh sách lớn có thể thay bằng ref
+bất biến/hash, không gán “đã duyệt tất cả tương lai”. Score vẫn tính trên chứng cứ gốc;
+watermark chỉ chống mở lại cùng ca. Giữ before_snapshot để truy hồi nguyên nhân.
+
+review.version và sign.version tăng theo transaction quyết định; expected_version
+API 1.0 là review.version. Khóa lại sign khi commit; nếu biến đổi so với lúc duyệt
+thì từ chối 409 và người duyệt xem lại. Mọi remove/replace cần hai evidence thuộc
+trước/sau theo thời gian, replacement khác sign cũ; FK chỉ kiểm tồn tại, service
+kiểm quyền, thời gian và đúng tấm.
+
+Snapshot không cần bảng thứ chín trong thiết kế đầu: dựng kết quả trong bộ nhớ
+từ dữ liệu đã lọc, cache có khóa gồm năm/cutoff/config hash/dataset/registry/model/
+chế độ admin. sign là cache hiện tại, không dùng nó làm nguồn đúng cho tất cả năm.
+Khi backfill hoặc admin đổi quyết định, tăng data_revision và vô hiệu cache liên quan.
+Không xóa lịch sử cũ để làm lại snapshot cho “đẹp”.
+
+### Danh sách bổ sung 1.1
+
+- Bổ sung bảy cột nullable/default an toàn vào thiết kế trip để quản lý manifest/replay.
+- Đặc tả image lookup/quyền trong manifest ngoài git; chưa thêm bảng ảnh.
+- Đặc tả provenance observation/history và watermark admin trong JSON đã có.
+- Giữ nguyên enum, FK và ý nghĩa cột 1.0; schema nháp vẫn chưa được chạy trên MySQL.

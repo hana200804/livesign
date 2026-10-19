@@ -58,6 +58,7 @@ Không giao sẵn người chốt: ai nhận việc liên quan thì đưa số l
 | Cấp ảnh và trace replay | **Cần nhóm quyết:** kho ảnh chuẩn bị ngoài git, API kiểm trip/image/cutoff; giới hạn dung lượng trace sau khi đo để replay ổn định và giữ đúng quyền dữ liệu | Trước cung cấp dữ liệu app |
 | Chứng cứ admin đã duyệt | **Cần nhóm quyết:** lưu watermark tập chứng cứ trong history, giữ điểm/âm gốc và chỉ mở lại ca khi có bằng chứng mới để tránh vòng lặp keep | Trước triển khai quyết định admin |
 | Demo quyết định lịch sử | **Cần nhóm quyết:** CSDL demo riêng, manifest scenario_id và nhãn mô phỏng; không bỏ kiểm decided_at trong đánh giá thật | Trước chuẩn bị demo |
+| Lưu metadata frame | **Cần nhóm quyết:** thêm metadata trace vào trip, image lookup ở manifest bất biến ngoài git, chưa thêm bảng ảnh; đo trước khi tăng độ phức tạp CSDL | Trước migration CSDL |
 
 ## Đối chiếu nguồn cho bộ thiết kế 1.1
 

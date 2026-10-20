@@ -2,6 +2,8 @@
 
 Train YOLOv8n nhận diện biển báo Việt Nam, xuất TFLite cho app, và chạy nhận diện hàng loạt trên ảnh Mapillary để tạo "lần thấy" cho backend.
 
+Các bước làm và thứ tự phụ thuộc: [WORKFLOW.md](WORKFLOW.md).
+
 ## Cấu trúc
 
 ```

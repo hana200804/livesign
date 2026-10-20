@@ -17,4 +17,5 @@ Quy trình nhánh/PR ở [CLAUDE.md gốc](../CLAUDE.md). Thiết kế: [docs/ar
 - **Test trước khi mở PR:** `./mvnw -B test` trong `backend/`. CI tự chạy khi đã có `backend/pom.xml`.
   - Test bắt buộc cho `core` liệt kê ở [docs/testing.md](../docs/testing.md).
   - Logic mới trong `core` phải có unit test kèm theo.
-- **Chưa có project:** tạo theo [README.md](README.md) trong một nhánh `backend/khoi-tao-project` riêng, rồi PR vào `dev`.
+  - Test cần MySQL dùng Testcontainers (`MySqlTestcontainer`), tên lớp kết thúc bằng `Test` để `mvnw test` chạy. Không dùng H2.
+- **Module:** `core/` (Java thuần) và `app/` (Spring Boot), xem [README.md](README.md).

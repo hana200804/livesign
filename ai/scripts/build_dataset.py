@@ -63,7 +63,8 @@ def main():
 
     hashes = {r["image_key"]: r for r in read_csv(DEDUP / "hashes.csv")}
     candidates = read_csv(DEDUP / "candidates.csv")
-    unreviewed = sum(1 for c in candidates if c["same"].strip().lower() not in ("yes", "no"))
+    unreviewed = sum(1 for c in candidates if c["same"].strip().lower() not in ("yes", "no")
+                     and hashes[c["key_a"]]["sha256"] != hashes[c["key_b"]]["sha256"])
     same = [(c["key_a"], c["key_b"]) for c in candidates if c["same"].strip().lower() != "no"]
 
     recs, mapped, dropped, sources, exclusions = [], {}, Counter(), {}, []

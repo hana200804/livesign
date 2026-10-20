@@ -16,3 +16,9 @@ spring:
 
 server:
   port: ${LIVESIGN_HTTP_PORT:8080}
+
+livesign:
+  jwt:
+    # HS256, tối thiểu 32 byte. Để trống thì dịch vụ không khởi động.
+    secret: ${LIVESIGN_JWT_SECRET:}
+    ttl: 3600s

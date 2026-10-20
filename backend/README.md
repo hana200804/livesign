@@ -30,3 +30,15 @@ Dùng Spring JDBC, không dùng JPA: cột `POINT SRID 4326` cần SQL ghi rõ `
 3. `./mvnw -pl app -am spring-boot:run`.
 
 Không ghi mật khẩu hay khóa vào `application*.yml`.
+
+## Cấp tài khoản
+
+Không có tài khoản mặc định và không có API tự đăng ký. Tạo từng tài khoản bằng lệnh sau
+(mật khẩu ≥12 ký tự, đọc từ biến môi trường để không nằm trong lịch sử lệnh):
+
+```bash
+LIVESIGN_NEW_USER_PASSWORD='<nhập trên máy>' ./mvnw -pl app -am spring-boot:run -Dspring-boot.run.arguments="--create-user=demo_admin --role=admin"
+```
+
+`--role` là `user`, `importer` hoặc `admin`. Lệnh tạo xong thì thoát.
+Đăng nhập: `POST /api/v1/auth/login`, JWT HS256 ký bằng `LIVESIGN_JWT_SECRET` (≥32 byte), hạn 3600 s.

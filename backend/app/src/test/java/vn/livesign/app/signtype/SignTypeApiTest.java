@@ -1,6 +1,7 @@
 package vn.livesign.app.signtype;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,7 +43,7 @@ class SignTypeApiTest {
   @Test
   void traDuMuoiHaiLoaiTheoClassId() throws Exception {
     repository.upsert(catalog);
-    mvc.perform(get("/api/v1/sign-types"))
+    mvc.perform(get("/api/v1/sign-types").with(jwt().authorities(() -> "ROLE_USER")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.classes_version").value("qcvn12-2026-10-19"))
         .andExpect(jsonPath("$.items.length()").value(12))

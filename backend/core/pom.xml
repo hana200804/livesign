@@ -15,6 +15,12 @@
   <description>Định vị, hướng mặt, gộp, điểm tin cậy, vòng đời. Không phụ thuộc Spring, không gọi CSDL hay HTTP.</description>
 
   <dependencies>
+    <!-- Đọc classes.yaml và params.yaml; dịch vụ và CLI đánh giá dùng chung bộ đọc. -->
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>

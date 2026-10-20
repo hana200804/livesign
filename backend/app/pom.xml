@@ -71,6 +71,19 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <!-- Chép nguồn duy nhất của danh mục vào jar lúc build; không giữ bản sao trong git. -->
+      <resource>
+        <directory>${project.basedir}/../../ai/configs</directory>
+        <targetPath>livesign</targetPath>
+        <includes>
+          <include>classes.yaml</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>

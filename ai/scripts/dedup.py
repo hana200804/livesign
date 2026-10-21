@@ -58,7 +58,7 @@ def main():
         for rec in read_yolo_source(source, RAW / source, load_yaml):
             rel = rec.image_path.relative_to(REPO).as_posix()
             if rel in cache:
-                rows.append(cache[rel])
+                rows.append({**cache[rel], "image_key": rec.image_key})
                 continue
             raw = Image.open(rec.image_path)
             rotated = raw.getexif().get(0x0112, 1) not in (1, None)
@@ -66,6 +66,9 @@ def main():
             rows.append({"image_key": rec.image_key, "path": rel, "sha256": file_sha256(rec.image_path),
                          "phash64": f"{phash_int(img):016x}", "width": img.width, "height": img.height,
                          "exif_rotated": int(rotated)})
+    keys = [r["image_key"] for r in rows]
+    if len(set(keys)) != len(keys):
+        sys.exit("image_key bị trùng giữa các file; sửa read_yolo_source trước khi lọc trùng")
     with open(hashes_csv, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()

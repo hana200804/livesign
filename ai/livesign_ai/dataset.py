@@ -26,10 +26,17 @@ class ImageRec:
     label_path: Path | None
     orig_split: str | None
     objects: list = field(default_factory=list)
+    rel: str = ""  # đường dẫn trong nguồn, bỏ thư mục `images` và đuôi file
 
     @property
     def image_key(self):
-        return f"{self.source}:{self.image_path.stem}"
+        """Khóa duy nhất trong nguồn. Không dùng tên file trần: nguồn có thể có cùng tên
+        ở nhiều split (bộ Kaggle có 270 ảnh test/val chép y hệt ảnh train cùng tên)."""
+        return f"{self.source}:{self.rel or self.image_path.stem}"
+
+    @property
+    def export_name(self):
+        return self.image_key.replace(":", "__").replace("/", "__")
 
 
 def parse_names(names):
@@ -87,7 +94,8 @@ def read_yolo_source(source, root, load_yaml):
     for img in sorted(p for p in root.rglob("*") if p.suffix.lower() in IMAGE_EXTS and "images" in p.parts):
         lab = label_path_for(img)
         objs = parse_yolo_label(lab.read_text(encoding="utf-8"), names) if lab and lab.exists() else []
-        recs.append(ImageRec(source, img, lab if lab and lab.exists() else None, split_from_path(img, root), objs))
+        rel = "/".join(p for p in img.relative_to(root).with_suffix("").parts if p != "images")
+        recs.append(ImageRec(source, img, lab if lab and lab.exists() else None, split_from_path(img, root), objs, rel))
     return recs
 
 

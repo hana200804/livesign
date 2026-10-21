@@ -106,7 +106,7 @@ def main():
     images, exported = [], []
     for rec in recs:
         split = split_of[rec.image_key]
-        name = f"{rec.source}__{rec.image_path.stem}"
+        name = rec.export_name
         img_dst = YOLO / "images" / split / f"{name}{rec.image_path.suffix.lower()}"
         lab_dst = YOLO / "labels" / split / f"{name}.txt"
         img_dst.parent.mkdir(parents=True, exist_ok=True)

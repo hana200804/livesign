@@ -67,4 +67,15 @@ def test_read_yolo_source(tmp_path):
         (tmp_path / "labels" / split / f"{split}1.txt").write_text("0 0.5 0.5 0.1 0.1\n")
     (tmp_path / "data.yaml").write_text("names: [no turn left]\n")
     recs = read_yolo_source("k", tmp_path, lambda p: yaml.safe_load(Path(p).read_text()))
-    assert [(r.image_key, r.orig_split, len(r.objects)) for r in recs] == [("k:train1", "train", 1), ("k:val1", "val", 1)]
+    assert [(r.image_key, r.orig_split, len(r.objects)) for r in recs] == [("k:train/train1", "train", 1),
+                                                                           ("k:val/val1", "val", 1)]
+
+
+def test_same_file_name_in_two_splits_gets_two_keys(tmp_path):
+    for split in ("train", "test"):
+        (tmp_path / split / "images").mkdir(parents=True)
+        (tmp_path / split / "images" / "11508.png").write_bytes(b"")
+    (tmp_path / "data.yaml").write_text("names: [a]\n")
+    recs = read_yolo_source("k", tmp_path, lambda p: yaml.safe_load(Path(p).read_text()))
+    assert [r.image_key for r in recs] == ["k:test/11508", "k:train/11508"]
+    assert recs[0].export_name == "k__test__11508"

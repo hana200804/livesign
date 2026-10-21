@@ -109,6 +109,8 @@ definitions:
 
 # Chỉ điền mapping {nhãn_gốc: mã_QCVN} sau khi xem annotation thật và ảnh mẫu.
 # Không suy lớp chi tiết từ 7 nhóm của Zalo; nhãn không đủ chi tiết phải gán lại hoặc bỏ.
+# ignore: nhãn đã xem là chắc chắn ngoài 12 lớp; bỏ object, ảnh vẫn dùng. Nhãn không có
+# trong mapping lẫn ignore (có thể lẫn lớp đích) làm build_dataset.py loại cả ảnh.
 sources:
   zalo2020:
     status: pending_annotation_and_license_check
@@ -117,5 +119,35 @@ sources:
     status: pending_dataset_version_and_license_check
     mapping: {}
   vnts_kaggle:
-    status: pending_annotation_and_license_check
-    mapping: {}
+    # Kaggle jaydenguyenx/vietnamese-traffic-signs-detection-and-recognition, tải 20/10/2026.
+    # Đã xem 20 crop/nhãn. Giấy phép "Unknown" trên trang nguồn: chưa đủ để train chính thức.
+    status: mapping_checked_license_pending
+    mapping:
+      one way prohibition: P.102
+      no parking: P.131a
+      no stopping and parking: P.130
+      no turn left: P.123a
+      no turn right: P.123b
+      no u turn: P.124a
+      pedestrian crossing: I.423a # Lẫn vài tam giác cảnh báo người đi bộ; cần lọc tay.
+      construction danger: W.227
+    ignore:
+      - speed limit
+      - weight limit
+      - height limit
+      - no truck entry/turning
+      - no motorbike entry/turning
+      - no u and left turn
+      - no u and right turn
+      - no more prohibition
+      - indication # Biển hiệu lệnh tròn xanh, không phải I.407a.
+      - vehicle permission lane
+      - vehicle and speed permission lane
+      - intersection danger
+      - road danger
+      - slow warning
+      - pedestrian danger # W.224 người đi bộ, không phải W.225 trẻ em.
+      - overpass route
+    # Không ignore (loại cả ảnh): "no car entry/turning" lẫn P.103a với cấm rẽ;
+    # "other prohibition" có thể có P.128; "direction" có biển mũi tên đơn giống I.407a;
+    # "other warning", "other" có thể lẫn W.225.

@@ -484,3 +484,21 @@ rồi lọc chính xác như 1.0. `sign` vẫn là cache hiện tại cho admin;
 - `sign_snapshot` đóng thêm road_ref, replacement_sign_id, nguồn xác nhận trước, ray_count/residual, feature;
   thêm `sign_snapshot_observation` liên kết lần thấy theo run.
 - Chưa có migration thực thi; DDL vẫn cần chạy thử trên MySQL 8.
+
+## Migration triển khai V4 — 25/10/2026
+
+V1–V3 giữ nguyên. V4 bổ sung để thực thi điều kiện phiên bản 1.2:
+
+| Bảng | Cột thêm | Ý nghĩa |
+| --- | --- | --- |
+| observation | input_seq, payload_json, logical_sha256 (UNIQUE nullable) | Tập đầu vào run, payload bất biến, chống nhập lại detection |
+| sign_history | input_seq, run_id nullable | History suy luận theo run; admin có run_id null và kiểm hai cutoff |
+| review | input_seq | Không đưa ca sinh sau tập đầu vào vào response |
+| snapshot_run | config_yaml, classes_json | Đóng params/danh mục cho phiên đã pin |
+| sign_snapshot | sign_version | Version của representation, không đọc cache hiện tại |
+
+DATETIME dùng lịch UTC khi JDBC bind/read, không phụ thuộc múi giờ JVM.
+Registry `observation.target_sign_id` giữ ID; truy vấn năm dùng liên kết riêng
+của run. History suy luận dựng riêng từng cutoff, không lấy hình học năm sau
+gắn vào năm trước. Cache sign không ghi đè quyết định mới hơn mốc snapshot.
+Migration và test MySQL nằm trong `backend/`.

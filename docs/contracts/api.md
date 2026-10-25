@@ -610,3 +610,21 @@ tham số; so danh sách **ứng viên trước chống lặp** của app với 
 - Test đối chiếu so ứng viên trước chống lặp, trong vùng biển dọc chuyến.
 - Item biển có thêm `location_method`, `facing_source`, `alertable`.
 - `GET /signs` cho thêm role importer đọc, để batch AI lấy vị trí/hướng mặt khi tạo not_seen ở lượt 2.
+
+## Ghi chú triển khai backend 25/10/2026
+
+- Endpoint bắt buộc 1.0–1.2 đã có controller; có thêm `POST /admin/reviews`.
+  `POST /admin/signs` vẫn thuộc Nên có, chưa triển khai. Web/app là client riêng.
+- Trip envelope nhận metadata replay của DDL 1.1: `trace_manifest_ref`,
+  `trace_schema_version`, `trace_sha256`, `data_kind`, `data_revision`,
+  `replay_enabled`. Importer/admin khai lúc tạo trip; user không khai ref kho.
+- Hash payload bỏ khác biệt thứ tự key, null/bỏ trường và biểu diễn số. Ngày được
+  chuẩn hóa UTC; không dùng múi giờ máy chạy để thay ngày/năm chụp.
+- Chống trùng seen theo ảnh/loại/model/bbox, độc lập trip replay. Metadata gốc
+  creator/sequence/time khác dưới cùng ảnh/model bị từ chối.
+- Review trả thêm `actionable`: false nếu ca hiện tại đã đóng, nhưng quyết định
+  đó sau cutoff của năm đang xem. Không tự gửi lại quyết định.
+- Snapshot đóng bytes params và danh mục; `config_sha256` gồm cả hai. Đổi cấu
+  hình tạo run mới dù input_seq không đổi. GET giữ đúng run được pin.
+- Trace giới hạn bytes qua cấu hình triển khai. Manifest JSON chỉ trả metadata
+  camera trước cutoff, không trả ref nội bộ từ `images` của kho.

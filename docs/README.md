@@ -1,5 +1,9 @@
 # Tài liệu LiveSign
 
+**Triển khai backend 25/10/2026:** xem [backend/README.md](../backend/README.md).
+Các ghi chú cũ “chưa có controller/DDL” mô tả thời điểm thiết kế; phần bổ sung
+triển khai nằm cuối hợp đồng API, CSDL và trace. Phạm vi MVP không đổi.
+
 Repo là nguồn ưu tiên; tài liệu thiết kế không phải bằng chứng đã triển khai/đo.
 Khác biệt với PDF cũ ở gốc được ghi trong decisions.md. Những chỗ **Cần nhóm quyết**
 giữ ở trạng thái đề xuất; ngưỡng đã chốt không được tự đổi. Các tài liệu thiết kế

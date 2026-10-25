@@ -1,0 +1,10 @@
+# Chỉ dùng CSDL mô phỏng riêng; không fallback sang MYSQL_URL vận hành.
+spring:
+  datasource:
+    url: ${LIVESIGN_SIMULATION_MYSQL_URL}
+    username: ${LIVESIGN_SIMULATION_MYSQL_USER}
+    password: ${LIVESIGN_SIMULATION_MYSQL_PASSWORD}
+livesign:
+  scenario-id: ${LIVESIGN_SCENARIO_ID}
+  simulation-now: ${LIVESIGN_SIMULATION_NOW}
+  params: ${LIVESIGN_SIMULATION_PARAMS}

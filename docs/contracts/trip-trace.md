@@ -101,3 +101,17 @@ không khẳng định nằm trên đường đúng một chiều.
 Điều kiện đọc: 25 dòng JSON hợp lệ, UTC tăng 2 s, cùng sequence/creator,
 segment_id=0, lon/lat hữu hạn, heading=0°, speed=9,95 m/s. Khoảng cách tính từ
 tọa độ có sai khác làm tròn nhỏ; đây không phải phép đo vận tốc ngoài đường.
+
+## Manifest kho phục vụ backend — 25/10/2026
+
+Manifest ngoài git dùng các trường trên, thêm `images` theo image_id:
+
+```json
+{"trip_id":"illustration:trip-01","trace_schema_version":"1.1","trace_ref":"trips/demo/trace.jsonl","trace_sha256":"<sha256 bytes gốc>","time_precision":"instant","speed_method":"synthetic_constant","heading_method":"synthetic","attribution":"Dữ liệu minh họa","images":{"illustration:image-001":{"ref":"trips/demo/images/001.jpg","content_type":"image/jpeg","sha256":"<sha256 ảnh>","attribution":"Dữ liệu minh họa"}},"frames_metadata":{"illustration:image-001":{"focal":0.8,"is_pano":false,"image_width_px":2048,"image_height_px":1152,"geometry_source":"illustration","heading_source":"synthetic"}}}
+```
+
+`ref` tương đối trong `LIVESIGN_DATA_ROOT`; không nhận URL/ref ra ngoài kho.
+Importer xác minh metadata kích thước khớp bytes ảnh; kho giữ file bất biến theo
+version. API chỉ đọc image_id có trước cutoff, kiểm hash nếu manifest khai.
+Manifest API chỉ trả sáu trường camera trên, không trả ref nội bộ. Thiếu ảnh
+thì client báo không có frame, không bịa ảnh/metadata.

@@ -1,0 +1,4 @@
+# Chỉ cho test. Spring nạp classpath:/config/application.yml đè lên cấu hình chính.
+livesign:
+  jwt:
+    secret: khoa-chi-dung-cho-test-khong-dung-that-0123456789

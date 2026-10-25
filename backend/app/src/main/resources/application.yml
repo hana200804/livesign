@@ -1,0 +1,29 @@
+# Không ghi giá trị thật ở đây. Kết nối đọc từ biến môi trường (tên ở .env.example gốc repo).
+spring:
+  application:
+    name: livesign
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    hikari:
+      connection-init-sql: "SET time_zone = '+00:00'"
+  flyway:
+    locations: classpath:db/migration
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${LIVESIGN_HTTP_PORT:8080}
+
+livesign:
+  storage-root: ${LIVESIGN_DATA_ROOT:./data}
+  params: ${LIVESIGN_PARAMS:classpath:livesign/params.yaml}
+  trace-max-bytes: ${LIVESIGN_TRACE_MAX_BYTES:67108864}
+  jwt:
+    # HS256, tối thiểu 32 byte. Để trống thì dịch vụ không khởi động.
+    secret: ${LIVESIGN_JWT_SECRET:}
+    ttl: 3600s

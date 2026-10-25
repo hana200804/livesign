@@ -142,3 +142,15 @@ PB → B0 là tác dụng của cả gói định vị + gộp có hướng + lo
 Bộ mốc phải duyệt toàn đoạn, 20% tấm biển gán chéo; mô phỏng 10 biển giả + thay 5 biển,
 ca thật tìm từ ảnh công khai nhiều năm và báo riêng. Không nêu tên/so sánh với đồ án cụ thể;
 phương án đối chứng gọi là **cách làm phổ biến hiện nay**.
+
+## Thực thi backend — 25/10/2026
+
+- Giữ hợp đồng 1.0–1.2; bổ sung chi tiết triển khai ở cuối api/db-schema/trip-trace.
+- Migration V4 thêm input_seq/payload/hash logic, run_id history và bản cấu hình/
+  danh mục đóng. Không sửa V1–V3, enum cũ hoặc các ngưỡng đã chốt.
+- Importer/admin khai ref kho replay lúc tạo trip; user không cấp đường dẫn kho.
+  Thay bytes dùng ref/version mới. Manifest images chỉ ở kho, API trả metadata đã lọc.
+- Giữ các đề xuất nghiệp vụ đang mở như thiết kế: ưu tiên mâu thuẫn, hồi nguồn
+  xác nhận, watermark sau keep/confirm. Code có test không thay việc nhóm duyệt.
+- N/θ/θ_thấp và bật âm trong config vận hành vẫn null. Fixture bật ngưỡng/âm chỉ
+  trong MySQL Testcontainers riêng, không là quyết định hoặc kết quả thực nghiệm thật.

@@ -65,7 +65,7 @@ jobs:
           java-version: "21"
           cache: maven
       - if: steps.has.outputs.pom == 'yes'
-        run: ./mvnw -B test
+        run: ./mvnw -B verify
         working-directory: backend
 
   android:

@@ -57,6 +57,15 @@ public final class SignLifecycle {
       Collection<AdminDecision> decisions,
       int evaluationYear,
       ReliabilityParams params) {
+    return evaluate(evidence, decisions, evaluationYear, params, List.of());
+  }
+
+  public static Result evaluate(
+      Collection<Evidence> evidence,
+      Collection<AdminDecision> decisions,
+      int evaluationYear,
+      ReliabilityParams params,
+      Collection<Instant> typeChangeTimes) {
     List<Evidence> valid = evidence.stream().filter(Evidence::isValidEvidence).toList();
     List<AdminDecision> ordered =
         decisions.stream()
@@ -109,6 +118,14 @@ public final class SignLifecycle {
       }
 
       reliability = ReliabilityCalculator.compute(valid, year, params, everConfirmed);
+      if (typeChangeTimes.stream().anyMatch(t -> t.isBefore(cutoff))) {
+        var reasons = new ArrayList<>(reliability.conflictReasons());
+        reasons.add("type_change_evidence");
+        reliability = new Reliability(year, reliability.alpha(), reliability.beta(), reliability.agreementScore(),
+            reliability.positivePairCount(), reliability.negativePairCount(), reliability.lastSeenAt(),
+            reliability.positiveAgeYears(), reliability.lastEvidenceAt(), reliability.evidenceAgeYears(),
+            reasons, reliability.unevaluatedSignals());
+      }
 
       if (status == null || !status.isTerminal()) {
         status = next(status, source, everConfirmed, reliability, params, valid, transitionCutoff, watermark, cutoff);

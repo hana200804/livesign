@@ -24,8 +24,8 @@ import vn.livesign.core.reliability.SignLifecycle.Result;
 /**
  * Bảng "Unit test điểm và vòng đời — bắt buộc" trong docs/testing.md.
  *
- * <p>Fixture là ví dụ bốn năm của algorithms.md: N=3, θ=0,75, θ_thấp=0,40, H=2, K=2, base=0,5.
- * Đây là cấu hình test, không phải giá trị vận hành (N/θ trong params.yaml còn null).
+ * <p>Fixture là ví dụ bốn năm của algorithms.md: N=3, θ=0,75, θ_thấp=0,40, H=2, K=2, base=0,5. Đây
+ * là cấu hình test, không phải giá trị vận hành (N/θ trong params.yaml còn null).
  */
 class ReliabilityTest {
 
@@ -139,8 +139,10 @@ class ReliabilityTest {
     assertEquals(
         List.of(
             new SignLifecycle.StatusChange(2022, null, SignStatus.CONFIRMED_AUTO),
-            new SignLifecycle.StatusChange(2025, SignStatus.CONFIRMED_AUTO, SignStatus.SUSPECTED_CHANGE),
-            new SignLifecycle.StatusChange(2026, SignStatus.SUSPECTED_CHANGE, SignStatus.CONFIRMED_AUTO)),
+            new SignLifecycle.StatusChange(
+                2025, SignStatus.CONFIRMED_AUTO, SignStatus.SUSPECTED_CHANGE),
+            new SignLifecycle.StatusChange(
+                2026, SignStatus.SUSPECTED_CHANGE, SignStatus.CONFIRMED_AUTO)),
         r.changes());
   }
 

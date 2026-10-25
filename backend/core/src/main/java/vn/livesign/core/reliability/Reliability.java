@@ -6,8 +6,8 @@ import java.util.List;
 /**
  * Điểm tin cậy của một tấm tại năm đánh giá T, dựng từ bằng chứng trước cutoff.
  *
- * <p>Số cặp là số thật, không trọng số, không tính prior. {@code agreementScore} là quy ước,
- * chưa hiệu chỉnh thành xác suất, và không liên quan detector_confidence.
+ * <p>Số cặp là số thật, không trọng số, không tính prior. {@code agreementScore} là quy ước, chưa
+ * hiệu chỉnh thành xác suất, và không liên quan detector_confidence.
  *
  * @param conflictReasons dấu hiệu mâu thuẫn đã kích hoạt, mã như conflict_reasons của API
  * @param unevaluatedSignals dấu hiệu chưa tính được vì tham số null

@@ -13,8 +13,8 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 /**
  * Tham số mục reliability của config/params.yaml.
  *
- * <p>Chỉ đọc trường {@code value}; {@code proposed} không bao giờ được dùng thay. N/θ null thì không
- * tự xác nhận; θ_thấp null thì dấu hiệu (b) báo chưa tính được.
+ * <p>Chỉ đọc trường {@code value}; {@code proposed} không bao giờ được dùng thay. N/θ null thì
+ * không tự xác nhận; θ_thấp null thì dấu hiệu (b) báo chưa tính được.
  */
 public record ReliabilityParams(
     Integer n,

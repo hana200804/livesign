@@ -87,13 +87,13 @@ class SignCatalogTest {
 
   private static String mau(String vehicles, String group) {
     return """
-        classes_version: "t"
-        vehicle_types: [car, truck, motorcycle]
-        classes:
-          0: P.102
-        definitions:
-          P.102: {name_vi: x, group: %s, vehicle_types: %s}
-        """
+           classes_version: "t"
+           vehicle_types: [car, truck, motorcycle]
+           classes:
+             0: P.102
+           definitions:
+             P.102: {name_vi: x, group: %s, vehicle_types: %s}
+           """
         .formatted(group, vehicles);
   }
 

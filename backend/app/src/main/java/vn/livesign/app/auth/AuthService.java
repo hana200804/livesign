@@ -30,6 +30,7 @@ public class AuthService {
   private final PasswordEncoder passwords;
   private final JwtEncoder encoder;
   private final JwtProperties props;
+
   /** So với hash giả khi không có user, để thời gian trả lời không lộ username có tồn tại. */
   private final String dummyHash;
 
@@ -47,7 +48,8 @@ public class AuthService {
 
   public Token login(String username, String password) {
     Optional<UserAccount> account = users.findByUsername(username);
-    boolean ok = passwords.matches(password, account.map(UserAccount::passwordHash).orElse(dummyHash));
+    boolean ok =
+        passwords.matches(password, account.map(UserAccount::passwordHash).orElse(dummyHash));
     if (account.isEmpty() || !ok) {
       throw new ApiException(
           HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Sai tên đăng nhập hoặc mật khẩu");
@@ -74,7 +76,8 @@ public class AuthService {
       throw new IllegalArgumentException("username phải có 1–80 ký tự");
     }
     if (rawPassword == null || rawPassword.length() < MIN_PASSWORD_LENGTH) {
-      throw new IllegalArgumentException("Mật khẩu phải có ít nhất " + MIN_PASSWORD_LENGTH + " ký tự");
+      throw new IllegalArgumentException(
+          "Mật khẩu phải có ít nhất " + MIN_PASSWORD_LENGTH + " ký tự");
     }
     if (users.findByUsername(username).isPresent()) {
       throw new IllegalArgumentException("username đã tồn tại: " + username);

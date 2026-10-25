@@ -61,21 +61,41 @@ class SecurityConfig {
                 o.jwt(j -> j.jwtAuthenticationConverter(roles))
                     .authenticationEntryPoint(
                         (req, res, e) ->
-                            write(json, req, res, HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED",
+                            write(
+                                json,
+                                req,
+                                res,
+                                HttpStatus.UNAUTHORIZED,
+                                "UNAUTHENTICATED",
                                 "Cần đăng nhập"))
                     .accessDeniedHandler(
                         (req, res, e) ->
-                            write(json, req, res, HttpStatus.FORBIDDEN, "FORBIDDEN",
+                            write(
+                                json,
+                                req,
+                                res,
+                                HttpStatus.FORBIDDEN,
+                                "FORBIDDEN",
                                 "Thiếu vai trò")))
         .exceptionHandling(
             e ->
                 e.authenticationEntryPoint(
                         (req, res, ex) ->
-                            write(json, req, res, HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED",
+                            write(
+                                json,
+                                req,
+                                res,
+                                HttpStatus.UNAUTHORIZED,
+                                "UNAUTHENTICATED",
                                 "Cần đăng nhập"))
                     .accessDeniedHandler(
                         (req, res, ex) ->
-                            write(json, req, res, HttpStatus.FORBIDDEN, "FORBIDDEN",
+                            write(
+                                json,
+                                req,
+                                res,
+                                HttpStatus.FORBIDDEN,
+                                "FORBIDDEN",
                                 "Thiếu vai trò")))
         .build();
   }

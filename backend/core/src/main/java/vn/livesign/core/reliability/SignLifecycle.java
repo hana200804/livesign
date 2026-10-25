@@ -77,7 +77,8 @@ public final class SignLifecycle {
     int firstYear =
         Stream.concat(
                 valid.stream().map(Evidence::year),
-                ordered.stream().map(d -> d.effectiveAt().atZone(java.time.ZoneOffset.UTC).getYear()))
+                ordered.stream()
+                    .map(d -> d.effectiveAt().atZone(java.time.ZoneOffset.UTC).getYear()))
             .min(Integer::compare)
             .orElse(evaluationYear);
 
@@ -121,14 +122,34 @@ public final class SignLifecycle {
       if (typeChangeTimes.stream().anyMatch(t -> t.isBefore(cutoff))) {
         var reasons = new ArrayList<>(reliability.conflictReasons());
         reasons.add("type_change_evidence");
-        reliability = new Reliability(year, reliability.alpha(), reliability.beta(), reliability.agreementScore(),
-            reliability.positivePairCount(), reliability.negativePairCount(), reliability.lastSeenAt(),
-            reliability.positiveAgeYears(), reliability.lastEvidenceAt(), reliability.evidenceAgeYears(),
-            reasons, reliability.unevaluatedSignals());
+        reliability =
+            new Reliability(
+                year,
+                reliability.alpha(),
+                reliability.beta(),
+                reliability.agreementScore(),
+                reliability.positivePairCount(),
+                reliability.negativePairCount(),
+                reliability.lastSeenAt(),
+                reliability.positiveAgeYears(),
+                reliability.lastEvidenceAt(),
+                reliability.evidenceAgeYears(),
+                reasons,
+                reliability.unevaluatedSignals());
       }
 
       if (status == null || !status.isTerminal()) {
-        status = next(status, source, everConfirmed, reliability, params, valid, transitionCutoff, watermark, cutoff);
+        status =
+            next(
+                status,
+                source,
+                everConfirmed,
+                reliability,
+                params,
+                valid,
+                transitionCutoff,
+                watermark,
+                cutoff);
         if (status == SignStatus.CONFIRMED_AUTO) {
           source = ConfirmationSource.AUTO;
         }

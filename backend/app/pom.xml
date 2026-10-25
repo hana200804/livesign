@@ -87,6 +87,11 @@
   <build>
     <resources>
       <resource>
+        <directory>${project.basedir}/../../config</directory>
+        <targetPath>livesign</targetPath>
+        <includes><include>params.yaml</include></includes>
+      </resource>
+      <resource>
         <directory>src/main/resources</directory>
       </resource>
       <!-- Chép nguồn duy nhất của danh mục vào jar lúc build; không giữ bản sao trong git. -->

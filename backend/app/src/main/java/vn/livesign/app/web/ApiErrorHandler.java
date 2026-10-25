@@ -11,6 +11,53 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 class ApiErrorHandler {
+  private static final org.slf4j.Logger log =
+      org.slf4j.LoggerFactory.getLogger(ApiErrorHandler.class);
+
+  @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+  ResponseEntity<ApiError> method(HttpServletRequest request) {
+    return ResponseEntity.status(405)
+        .body(
+            ApiError.of(
+                "METHOD_NOT_ALLOWED",
+                "Phương thức không được hỗ trợ",
+                List.of(),
+                RequestIdFilter.of(request)));
+  }
+
+  @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+  ResponseEntity<ApiError> missing(HttpServletRequest request) {
+    return ResponseEntity.status(404)
+        .body(
+            ApiError.of(
+                "NOT_FOUND",
+                "Không có endpoint hoặc tài nguyên",
+                List.of(),
+                RequestIdFilter.of(request)));
+  }
+
+  @ExceptionHandler({
+    org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+    org.springframework.web.bind.MissingServletRequestParameterException.class
+  })
+  ResponseEntity<ApiError> query(HttpServletRequest request) {
+    return ResponseEntity.badRequest()
+        .body(
+            ApiError.of(
+                "INVALID_QUERY", "Thiếu hoặc sai query", List.of(), RequestIdFilter.of(request)));
+  }
+
+  @ExceptionHandler(Exception.class)
+  ResponseEntity<ApiError> internal(Exception e, HttpServletRequest request) {
+    log.error("Request failed: {}", RequestIdFilter.of(request), e);
+    return ResponseEntity.internalServerError()
+        .body(
+            ApiError.of(
+                "INTERNAL_ERROR",
+                "Lỗi dịch vụ; có thể thử lại bằng cùng ID",
+                List.of(),
+                RequestIdFilter.of(request)));
+  }
 
   @ExceptionHandler(ApiException.class)
   ResponseEntity<ApiError> api(ApiException e, HttpServletRequest request) {

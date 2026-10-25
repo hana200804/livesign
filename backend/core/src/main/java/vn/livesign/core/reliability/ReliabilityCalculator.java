@@ -13,8 +13,8 @@ import java.util.Map;
 /**
  * Gom cặp (creator, năm), tính α/β/điểm, tuổi bằng chứng và dấu hiệu mâu thuẫn (a)(b).
  *
- * <p>Theo docs/algorithms.md, mục Điểm tin cậy. Dấu hiệu (c) cần hai sign_id nên do bước gộp
- * cung cấp, không tính ở đây.
+ * <p>Theo docs/algorithms.md, mục Điểm tin cậy. Dấu hiệu (c) cần hai sign_id nên do bước gộp cung
+ * cấp, không tính ở đây.
  */
 public final class ReliabilityCalculator {
 
@@ -33,7 +33,10 @@ public final class ReliabilityCalculator {
    * @param wasConfirmed tấm từng confirmed_auto/confirmed_manual trước đó, điều kiện của (b)
    */
   public static Reliability compute(
-      Collection<Evidence> evidence, int evaluationYear, ReliabilityParams params, boolean wasConfirmed) {
+      Collection<Evidence> evidence,
+      int evaluationYear,
+      ReliabilityParams params,
+      boolean wasConfirmed) {
     Instant cutoff = cutoffOf(evaluationYear);
     List<Evidence> valid =
         evidence.stream()

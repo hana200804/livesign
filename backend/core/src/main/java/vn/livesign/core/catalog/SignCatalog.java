@@ -71,7 +71,8 @@ public record SignCatalog(String classesVersion, List<String> vehicleTypes, List
       List<String> labels =
           def.get("mapillary_label_candidates") == null
               ? List.of()
-              : stringList(def.get("mapillary_label_candidates"), c + ".mapillary_label_candidates");
+              : stringList(
+                  def.get("mapillary_label_candidates"), c + ".mapillary_label_candidates");
       types.add(new SignType(id, c, requireString(def, "name_vi"), group, applies, labels));
     }
     if (types.stream().map(SignType::code).distinct().count() != types.size()) {

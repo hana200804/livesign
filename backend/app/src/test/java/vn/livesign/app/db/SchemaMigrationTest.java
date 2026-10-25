@@ -30,8 +30,16 @@ class SchemaMigrationTest {
   void xoaDuLieuThu() {
     for (String t :
         List.of(
-            "sign_snapshot_observation", "sign_snapshot", "snapshot_run", "review",
-            "sign_history", "observation", "sign", "trip", "vehicle_profile", "sign_type",
+            "sign_snapshot_observation",
+            "sign_snapshot",
+            "snapshot_run",
+            "review",
+            "sign_history",
+            "observation",
+            "sign",
+            "trip",
+            "vehicle_profile",
+            "sign_type",
             "`user`")) {
       jdbc.update("DELETE FROM " + t);
     }
@@ -46,8 +54,17 @@ class SchemaMigrationTest {
             String.class);
     assertThat(tables)
         .containsExactlyInAnyOrder(
-            "user", "vehicle_profile", "sign_type", "trip", "sign", "observation",
-            "sign_history", "review", "data_state", "snapshot_run", "sign_snapshot",
+            "user",
+            "vehicle_profile",
+            "sign_type",
+            "trip",
+            "sign",
+            "observation",
+            "sign_history",
+            "review",
+            "data_state",
+            "snapshot_run",
+            "sign_snapshot",
             "sign_snapshot_observation");
     assertThat(jdbc.queryForObject("SELECT input_seq FROM data_state WHERE id = 1", Long.class))
         .isZero();
@@ -64,7 +81,9 @@ class SchemaMigrationTest {
     themSignType("P.131a", 7);
     jdbc.update(
         "INSERT INTO sign (sign_id, sign_type_code, location, conflict_reasons, params_version)"
-            + " VALUES ('s1', 'P.131a', " + POINT + ", JSON_ARRAY(), 'test')");
+            + " VALUES ('s1', 'P.131a', "
+            + POINT
+            + ", JSON_ARRAY(), 'test')");
     Map<String, Object> row =
         jdbc.queryForMap(
             "SELECT ST_SRID(location) AS srid, ST_Longitude(location) AS lon,"
@@ -80,7 +99,8 @@ class SchemaMigrationTest {
             () ->
                 jdbc.update(
                     "INSERT INTO sign (sign_id, sign_type_code, location, conflict_reasons,"
-                        + " params_version) VALUES ('s1', 'X.999', " + POINT
+                        + " params_version) VALUES ('s1', 'X.999', "
+                        + POINT
                         + ", JSON_ARRAY(), 'test')"))
         .isInstanceOf(DataIntegrityViolationException.class);
   }
@@ -100,10 +120,13 @@ class SchemaMigrationTest {
     themUser("u1");
     themSignType("P.131a", 7);
     jdbc.update(
-        "INSERT INTO trip (trip_id, source, sequence_id, user_id) VALUES ('t1', 'mapillary', 'q', 'u1')");
+        "INSERT INTO trip (trip_id, source, sequence_id, user_id) VALUES ('t1', 'mapillary', 'q',"
+            + " 'u1')");
     jdbc.update(
         "INSERT INTO sign (sign_id, sign_type_code, location, conflict_reasons, params_version)"
-            + " VALUES ('s1', 'P.131a', " + POINT + ", JSON_ARRAY(), 'test')");
+            + " VALUES ('s1', 'P.131a', "
+            + POINT
+            + ", JSON_ARRAY(), 'test')");
     String insert =
         "INSERT INTO observation (observation_id, schema_version, classes_version, payload_sha256,"
             + " source, trip_id, sequence_id, creator_id, captured_at, captured_at_precision,"
@@ -130,9 +153,12 @@ class SchemaMigrationTest {
     themSignType("P.131a", 7);
     jdbc.update(
         "INSERT INTO sign (sign_id, sign_type_code, location, conflict_reasons, params_version)"
-            + " VALUES ('s1', 'P.131a', " + POINT + ", JSON_ARRAY(), 'test')");
+            + " VALUES ('s1', 'P.131a', "
+            + POINT
+            + ", JSON_ARRAY(), 'test')");
     jdbc.update(
-        "INSERT INTO review (review_id, sign_id, conflict_reasons) VALUES ('r1', 's1', JSON_ARRAY())");
+        "INSERT INTO review (review_id, sign_id, conflict_reasons) VALUES ('r1', 's1',"
+            + " JSON_ARRAY())");
     assertThatThrownBy(
             () ->
                 jdbc.update(
@@ -142,8 +168,7 @@ class SchemaMigrationTest {
   }
 
   private void themUser(String id) {
-    jdbc.update(
-        "INSERT INTO `user` (user_id, username, password_hash) VALUES (?, ?, 'x')", id, id);
+    jdbc.update("INSERT INTO `user` (user_id, username, password_hash) VALUES (?, ?, 'x')", id, id);
   }
 
   private void themSignType(String code, int classId) {

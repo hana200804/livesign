@@ -72,8 +72,12 @@ class AuthApiTest {
 
   @Test
   void saiMatKhauVaKhongCoUserCungMotLoi() throws Exception {
-    JsonNode wrong = loi(mvc.perform(login("test_admin", "sai-mat-khau-123")).andExpect(status().isUnauthorized()));
-    JsonNode missing = loi(mvc.perform(login("test_khong_co", PASSWORD)).andExpect(status().isUnauthorized()));
+    JsonNode wrong =
+        loi(
+            mvc.perform(login("test_admin", "sai-mat-khau-123"))
+                .andExpect(status().isUnauthorized()));
+    JsonNode missing =
+        loi(mvc.perform(login("test_khong_co", PASSWORD)).andExpect(status().isUnauthorized()));
     assertThat(wrong.at("/error/code").asText()).isEqualTo("INVALID_CREDENTIALS");
     assertThat(missing.at("/error/code").asText()).isEqualTo("INVALID_CREDENTIALS");
     assertThat(wrong.at("/error/message")).isEqualTo(missing.at("/error/message"));

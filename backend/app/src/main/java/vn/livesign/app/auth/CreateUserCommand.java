@@ -40,7 +40,9 @@ class CreateUserCommand implements ApplicationRunner {
     try {
       String username = args.getOptionValues("create-user").get(0);
       Role role =
-          args.containsOption("role") ? Role.fromDb(args.getOptionValues("role").get(0)) : Role.USER;
+          args.containsOption("role")
+              ? Role.fromDb(args.getOptionValues("role").get(0))
+              : Role.USER;
       String userId = auth.createUser(username, role, System.getenv(PASSWORD_ENV));
       log.info("Đã tạo tài khoản {} ({}), role={}", username, userId, role.dbValue());
     } catch (IllegalArgumentException e) {
